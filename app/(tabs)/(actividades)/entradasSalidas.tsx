@@ -12,12 +12,13 @@ export default function entradasSalidas() {
         }}
       ></View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.text}>Entradas</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.button}>
-          <Text style={styles.text}>Entradas</Text>
-        </TouchableOpacity>
+        <Text style={styles.text}>Entradas</Text>
+        <TouchableOpacity style={styles.button}></TouchableOpacity>
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <Text style={styles.text}>Entradas</Text>
+        <TouchableOpacity style={styles.button}></TouchableOpacity>
       </View>
     </View>
   );
@@ -32,8 +33,6 @@ const styles = StyleSheet.create({
 
   buttonContainer: {
     gap: 10,
-    flexDirection: "row",
-    justifyContent: "center",
     alignItems: "center",
     flex: 0.3,
   },

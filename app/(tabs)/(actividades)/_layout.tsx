@@ -7,7 +7,7 @@ import Inventario from "./inventario";
 export default function _layout() {
   return (
     <Stack>
-      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="dashboard" options={{ headerShown: false }} />
       <Stack.Screen name="inventario" />
       <Stack.Screen name="inventarioSemanal" />
     </Stack>
