@@ -1,8 +1,24 @@
-import { View, Text } from "react-native";
-import React, { useEffect } from "react";
-import { Stack } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Stack, useRouter } from "expo-router";
+import { useAuthContext } from "@/context/AuthContext";
 
 const AuthLayout = () => {
+  const navigator = useRouter();
+  const { user, authLoading } = useAuthContext();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (isMounted) {
+      if (user) {
+        navigator.replace("/(tabs)");
+      }
+    }
+  }, [user, isMounted, navigator]);
+
   return (
     <Stack initialRouteName="login">
       <Stack.Screen name="login" options={{ headerShown: false }} />

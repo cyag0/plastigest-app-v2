@@ -12,6 +12,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
+import { useAuthContext } from "@/context/AuthContext";
+import { Button } from "react-native-paper";
 
 const { width } = Dimensions.get("window");
 
@@ -19,6 +21,9 @@ export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [animation] = useState(new Animated.Value(0));
+  const [loading, setLoading] = useState(false);
+
+  const { login } = useAuthContext();
 
   useEffect(() => {
     Animated.timing(animation, {
@@ -28,10 +33,17 @@ export default function LoginScreen() {
     }).start();
   }, []);
 
-  const handleLogin = () => {
-    // Aquí iría la lógica de autenticación
-    console.log("Login attempt with:", email, password);
-  };
+  async function handleLogin() {
+    try {
+      setLoading(true);
+      console.log("login", email, password);
+      await login({ email, password });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const translateY = animation.interpolate({
     inputRange: [0, 1],
@@ -53,7 +65,7 @@ export default function LoginScreen() {
           <Text style={styles.title}>Bienvenido</Text>
           <View style={styles.inputContainer}>
             <AntDesign
-              name="envelope"
+              name="mail"
               size={20}
               color="#666"
               style={styles.inputIcon}
@@ -84,25 +96,19 @@ export default function LoginScreen() {
               secureTextEntry
             />
           </View>
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+          <Button
+            loading={loading}
+            style={styles.loginButton}
+            onPress={handleLogin}
+          >
             <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-          </TouchableOpacity>
+          </Button>
+
           <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>
               ¿Olvidaste tu contraseña?
             </Text>
           </TouchableOpacity>
-          <View style={styles.socialLogin}>
-            <TouchableOpacity style={styles.socialButton}>
-              <AntDesign name="facebook" size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <AntDesign name="google" size={20} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.socialButton}>
-              <AntDesign name="twitter" size={20} color="#fff" />
-            </TouchableOpacity>
-          </View>
         </Animated.View>
       </KeyboardAvoidingView>
     </LinearGradient>
@@ -155,7 +161,7 @@ const styles = StyleSheet.create({
   loginButton: {
     backgroundColor: "#4c669f",
     borderRadius: 10,
-    padding: 15,
+    padding: 4,
     width: "100%",
     alignItems: "center",
     marginTop: 10,

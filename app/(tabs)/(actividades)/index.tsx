@@ -8,43 +8,84 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import { green } from "react-native-reanimated/lib/typescript/reanimated2/Colors";
 
 const { width } = Dimensions.get("window");
+
+const colores = {
+  red: {
+    normal: "#ff6968",
+    light: "#ff9f9e",
+  },
+  purple: {
+    normal: "#7A54FF",
+    light: "#A68FFF",
+  },
+  orange: {
+    normal: "#FF8F61",
+    light: "#FFBFA0",
+  },
+  blue: {
+    normal: "#2AC2FF",
+    light: "#7EDFFF",
+  },
+  purple2: {
+    normal: "#5C61FF",
+    light: "#8F92FF",
+  },
+  green: {
+    normal: "#96DA45",
+    light: "#C4F08A",
+  },
+};
 
 const dashboardItems = [
   {
     title: "Inventario",
-    icon: "cube",
-    navigateTo: "inventario",
+    icon: "bars",
+    navigateTo: "(inventario)",
+    color: "red",
   },
   {
     title: "Inventario Semanal",
     icon: "calendar",
     navigateTo: "inventarioSemanal",
+    color: "purple",
   },
   {
     title: "Entradas y Salidas",
     icon: "exchange",
     navigateTo: "entradasSalidas",
+    color: "orange",
   },
   {
     title: "Usuarios",
-    icon: "users",
+    icon: "user",
     navigateTo: "users",
+    color: "blue",
   },
   {
     title: "Sucursales",
     icon: "building",
     navigateTo: "sucursales",
+    color: "purple2",
+  },
+  {
+    title: "Productos",
+    icon: "shopping-cart",
+    navigateTo: "(productos)",
+    color: "green",
   },
 ];
 
-export default function DashboardScreen({ navigation }) {
-  const handleNavigation = (screen) => {
-    // Aquí iría la lógica de navegación
-    console.log(`Navigating to: ${screen}`);
-    // navigation.navigate(screen);
+export default function DashboardScreen() {
+  const navigator = useRouter();
+
+  const handleNavigation = (screen: string) => {
+    if (!screen) return;
+    navigator.push(screen);
   };
 
   return (
@@ -56,10 +97,13 @@ export default function DashboardScreen({ navigation }) {
         {dashboardItems.map((item, index) => (
           <TouchableOpacity
             key={index}
-            style={styles.card}
+            style={[
+              styles.card,
+              { backgroundColor: colores[item.color].normal },
+            ]}
             onPress={() => handleNavigation(item.navigateTo)}
           >
-            <AntDesign name={item.icon} size={30} color="#FFFFFF" />
+            <FontAwesome name={item.icon} size={24} color="#FFFFFF" />
             <Text style={styles.cardText}>{item.title}</Text>
           </TouchableOpacity>
         ))}
