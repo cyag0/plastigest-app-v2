@@ -10,7 +10,7 @@ import { useEffect, useState } from "react";
 import "react-native-reanimated";
 
 import { useColorScheme } from "@/hooks/useColorScheme";
-import { SafeAreaView } from "react-native";
+import { Dimensions, SafeAreaView, Text, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
 import AuthContextProvider, { useAuthContext } from "@/context/AuthContext";
@@ -64,12 +64,23 @@ function RootLayout() {
   );
 }
 
+const { width } = Dimensions.get("screen");
+
 export default function App() {
+  console.log(width);
   return (
-    <AuthContextProvider>
-      <SafeAreaView style={{ flex: 1 }}>
-        <RootLayout />
-      </SafeAreaView>
-    </AuthContextProvider>
+    <View style={{ flex: 1, flexDirection: "row", backgroundColor: "red" }}>
+      <AuthContextProvider>
+        <SafeAreaView style={{ flexDirection: "row", flex: 1 }}>
+          <RootLayout />
+        </SafeAreaView>
+      </AuthContextProvider>
+    </View>
   );
 }
+
+/* <AuthContextProvider>
+        <SafeAreaView style={{ flexDirection: "row", flex: 1 }}>
+          <RootLayout />
+        </SafeAreaView>
+      </AuthContextProvider> */

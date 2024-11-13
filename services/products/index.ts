@@ -1,15 +1,8 @@
-import {
-  addDoc,
-  collection,
-  deleteDoc,
-  doc,
-  getDoc,
-  getDocs,
-  setDoc,
-} from "firebase/firestore";
-import { db } from "../../firebase";
+import Crud from "../crud";
 
-export default {
+export default { ...Crud<App.Entities.Products.Product>("products") };
+
+/* {
   index: async () => {
     try {
       const querySnapshot = await getDocs(collection(db, "products"));
@@ -60,3 +53,4 @@ export default {
     }
   },
 };
+ */

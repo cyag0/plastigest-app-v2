@@ -1,5 +1,6 @@
 import React from "react";
 import { Stack } from "expo-router";
+import { Colors } from "@/constants/Colors";
 
 export default function _layout() {
   return (
@@ -37,6 +38,15 @@ export default function _layout() {
         name="(productos)/edit/[id]"
         options={{
           title: "Productos/Mostrar",
+        }}
+      />
+
+      {/* users */}
+      <Stack.Screen
+        name="(usuarios)/index"
+        options={{
+          title: "Usuarios",
+          headerStyle: { backgroundColor: Colors.primary[500] },
         }}
       />
     </Stack>

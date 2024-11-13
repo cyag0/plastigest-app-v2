@@ -63,7 +63,7 @@ const dashboardItems = [
   {
     title: "Usuarios",
     icon: "user",
-    navigateTo: "users",
+    navigateTo: "(usuarios)",
     color: "blue",
   },
   {
