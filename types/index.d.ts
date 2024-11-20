@@ -16,10 +16,9 @@ namespace App {
 
     namespace Products {
       interface Product {
-        id: number;
+        id: string;
         name: string;
         price: number;
-        stock: number;
         description?: string;
         img?: string;
       }

@@ -26,6 +26,7 @@ export default function Crud<T>(table: string) {
     create: async (item: any) => {
       try {
         const docRef = await addDoc(collection(db, table), item);
+        console.log("Item agregado con ID:", docRef.id);
         return docRef as T;
       } catch (e) {
         console.error("Error al agregar el item:", e);

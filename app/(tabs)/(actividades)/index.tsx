@@ -8,9 +8,11 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { AntDesign, FontAwesome } from "@expo/vector-icons";
+import { FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { green } from "react-native-reanimated/lib/typescript/reanimated2/Colors";
+import { Colors } from "@/constants/Colors";
+import { dashboardItems } from "./_layout";
+import Animated, { Layout, FadeInDown } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
 
@@ -41,45 +43,6 @@ const colores = {
   },
 };
 
-const dashboardItems = [
-  {
-    title: "Inventario",
-    icon: "bars",
-    navigateTo: "(inventario)",
-    color: "red",
-  },
-  {
-    title: "Inventario Semanal",
-    icon: "calendar",
-    navigateTo: "inventarioSemanal",
-    color: "purple",
-  },
-  {
-    title: "Entradas y Salidas",
-    icon: "exchange",
-    navigateTo: "entradasSalidas",
-    color: "orange",
-  },
-  {
-    title: "Usuarios",
-    icon: "user",
-    navigateTo: "(usuarios)",
-    color: "blue",
-  },
-  {
-    title: "Sucursales",
-    icon: "building",
-    navigateTo: "sucursales",
-    color: "purple2",
-  },
-  {
-    title: "Productos",
-    icon: "shopping-cart",
-    navigateTo: "(productos)",
-    color: "green",
-  },
-];
-
 export default function DashboardScreen() {
   const navigator = useRouter();
 
@@ -88,26 +51,64 @@ export default function DashboardScreen() {
     navigator.push(screen);
   };
 
+  const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Dashboard</Text>
-      </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        {dashboardItems.map((item, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[
-              styles.card,
-              { backgroundColor: colores[item.color].normal },
-            ]}
-            onPress={() => handleNavigation(item.navigateTo)}
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: Colors.black[100],
+          flexDirection: "row",
+          gap: 10,
+          padding: 10,
+        }}
+      >
+        <View style={{ flex: 0.65, gap: 10 }}>
+          <View
+            style={{
+              flex: 0.65,
+              backgroundColor: "#fff",
+              borderRadius: 12,
+              padding: 12,
+            }}
           >
-            <FontAwesome name={item.icon} size={24} color="#FFFFFF" />
-            <Text style={styles.cardText}>{item.title}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            <ScrollView
+              style={{
+                flex: 0.65,
+              }}
+            >
+              <View style={styles.content}>
+                {dashboardItems.map((item, index) => (
+                  <AnimatedTouchable
+                    key={"menu-item-" + index}
+                    entering={FadeInDown.delay(index * 100)} // Entrada animada
+                    layout={Layout.springify()
+                      .damping(15) // Controla la amortiguación (menor valor = más elástico)
+                      .stiffness(120) // Controla la rigidez (mayor valor = menos elástico)}
+                      .mass(1)}
+                    style={[
+                      styles.card,
+                      { backgroundColor: Colors.primary[400] },
+                    ]}
+                    onPress={() => handleNavigation(item.navigateTo)}
+                  >
+                    <FontAwesome name={item.icon} size={24} color="#FFFFFF" />
+                    <Text style={styles.cardText}>{item.title}</Text>
+                  </AnimatedTouchable>
+                ))}
+              </View>
+            </ScrollView>
+          </View>
+          <View
+            style={{ flex: 0.35, backgroundColor: "#fff", borderRadius: 12 }}
+          ></View>
+        </View>
+
+        <View
+          style={{ flex: 0.35, backgroundColor: "#fff", borderRadius: 12 }}
+        ></View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -129,25 +130,24 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   content: {
+    flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
-    padding: 10,
+    gap: 12,
   },
   card: {
-    backgroundColor: "#4169E1",
-    width: width / 2 - 20,
+    flex: 1,
+    display: "flex",
     aspectRatio: 1,
     borderRadius: 10,
     padding: 20,
-    margin: 5,
     alignItems: "center",
-    justifyContent: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
+    minWidth: 150,
   },
   cardText: {
     color: "#FFFFFF",

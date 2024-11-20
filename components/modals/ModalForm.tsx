@@ -1,4 +1,4 @@
-/* import { Colors } from "@/constants/Colors";
+import { Colors } from "@/constants/Colors";
 import { Formik } from "formik";
 import React, { useImperativeHandle, useState, forwardRef } from "react";
 import { View, StyleSheet } from "react-native";
@@ -27,7 +27,7 @@ export interface ModalFormProps {
   footer?: React.ReactNode;
   onClose?: () => void;
   onOpen?: () => void;
-  onOk?: (values: any, id?: number) => boolean;
+  onOk?: (values: any, id?: string) => boolean | Promise<boolean>;
   okText?: string;
   cancelText?: string;
   width?: number;
@@ -166,6 +166,7 @@ function ModalContent({
 
   return (
     <View style={[styles.modalContent, { width: options.width || 500 }]}>
+      {/* Header del modal */}
       <View style={styles.horizontalPadding}>
         {options.title && (
           <Text variant="titleMedium" style={{ fontWeight: "bold" }}>
@@ -175,14 +176,17 @@ function ModalContent({
       </View>
       <Divider style={styles.divider} />
 
+      {/* Contenido del modal */}
       <Formik initialValues={initialValues} onSubmit={onOk}>
         {({ handleChange, handleBlur, handleSubmit, values }) => (
           <View style={[styles.horizontalPadding]}>
+            {/* Inputs del modal o contenido */}
             <View style={{ gap: 10 }}>
               {options.content &&
                 options.content(handleChange, handleBlur, handleSubmit, values)}
             </View>
 
+            {/* Footer del modal */}
             <Divider style={styles.divider} />
             <View style={[styles.footer]}>
               {options.footer && options.footer}
@@ -231,9 +235,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   divider: {
-    backgroundColor: Colors.black[200], 
-    height: 0.5,
-    marginVertical: 8, 
+    backgroundColor: Colors.black[200], // Cambia el color de la línea
+    height: 0.5, // Cambia el grosor
+    marginVertical: 8, // Espaciado vertical
   },
 
   footer: {
@@ -248,4 +252,3 @@ const styles = StyleSheet.create({
   },
 });
 export default ModalFormComponent;
- */

@@ -48,3 +48,14 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+
+# Crear crud simple
+
+- en services crear una carpeta y poner lo siguiente
+
+import Crud from "../crud";
+export default { ...Crud<App.Entities.Supplier>("tabla_nombre") };
+
+- Crear la ruta app/(tabs)/(actividades)/(reemplazar_por_nombre)
+- usar el componente ProTable hay un ejemplo en app/(tabs)/(actividades)(proveedores)
+- completar los siguientes props, api, columns e inputs

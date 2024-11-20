@@ -1,4 +1,17 @@
-import {
+import { StyleSheet, Text, View } from "react-native";
+import React from "react";
+import ProTable from "@/components/ProComponents/ProTable";
+import Api from "@/services";
+
+const index = () => {
+  return <ProTable<App.Entities.Products.Product> api={Api.products.index} />;
+};
+
+export default index;
+
+const styles = StyleSheet.create({});
+
+/* import {
   View,
   Text,
   TouchableOpacity,
@@ -310,3 +323,4 @@ const styles = StyleSheet.create({
 });
 
 export default index;
+ */

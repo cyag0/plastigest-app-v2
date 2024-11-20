@@ -37,20 +37,33 @@ function RootLayout() {
     return null;
   }
 
+  const customTheme = {
+    ...DefaultTheme,
+    roundness: 8,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: Colors.primary[600],
+      secondary: "tomato",
+      surfaceVariant: Colors.primary[100],
+    },
+    button: {
+      contained: {
+        textColor: "#FFFFFF", // Texto blanco en botones "contained"
+        backgroundColor: Colors.primary[600], // Fondo del botón
+      },
+      outlined: {
+        borderColor: Colors.primary[600],
+        textColor: Colors.primary[600],
+      },
+      text: {
+        textColor: Colors.primary[600],
+      },
+    },
+  };
+
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <PaperProvider
-        theme={{
-          ...DefaultTheme,
-          roundness: 8,
-          colors: {
-            ...DefaultTheme.colors,
-            primary: Colors.primary[600],
-            secondary: "tomato",
-            surfaceVariant: Colors.primary[100],
-          },
-        }}
-      >
+      <PaperProvider theme={customTheme}>
         <Stack initialRouteName={!user ? "(auth)" : "(tabs)"}>
           {!user ? (
             <Stack.Screen name="(auth)" options={{ headerShown: false }} />
