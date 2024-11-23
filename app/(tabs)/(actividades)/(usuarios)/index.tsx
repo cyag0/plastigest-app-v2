@@ -1,61 +1,52 @@
-import { Dimensions } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import React from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
 import { TextInput } from "react-native-paper";
 
-const { width } = Dimensions.get("window");
-
 const index = () => {
   return (
-    <ProTable
-      title={"Usuarios"}
-      api={Api.products}
+    <ProTable<App.Entities.User>
+      api={Api.usuarios}
       columns={[
         {
           title: "Nombre",
-          field: "name",
+          field: "nombre",
         },
         {
-          title: "Precio",
-          field: "price",
-          type: "numeric",
+          title: "Email",
+          field: "email",
         },
         {
-          title: "Stock",
-          field: "stock",
-          type: "numeric",
-        },
-        {
-          title: "Descripción",
-          field: "description",
+          title: "Telefono",
+          field: "telefono",
         },
       ]}
-      inputs={(handleChange, handleBlur, handleSubmit, values) => {
+      title="Usuarios"
+      inputs={(handleChange, handleBlur, handlerSubmit, values) => {
         return (
           <>
             <TextInput
               label={"Nombre"}
-              onChangeText={handleChange("name")}
-              onBlur={handleBlur("name")}
-              value={values.name}
-              placeholder="Botella, Tapadera, etc."
+              onChangeText={handleChange("nombre")}
+              onBlur={handleBlur("nombre")}
+              value={values.nombre}
+              placeholder="Jose, carlos, ..."
             />
             <TextInput
-              label={"Descripción"}
-              placeholder="Descripción del producto"
-              onChangeText={handleChange("description")}
-              onBlur={handleBlur("description")}
-              value={values.description}
+              label={"Email"}
+              placeholder="ejemplo@gmail.com"
+              onChangeText={handleChange("test")}
+              onBlur={handleBlur("test")}
+              value={values.contacto}
             />
           </>
         );
-      }}
-      onFinish={(values) => {
-        console.log(values);
       }}
     />
   );
 };
 
 export default index;
+
+const styles = StyleSheet.create({});

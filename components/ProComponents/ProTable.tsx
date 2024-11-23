@@ -7,6 +7,9 @@ import { FontAwesome } from "@expo/vector-icons";
 import ModalFormComponent, { ModalFormRef } from "../modals/ModalForm";
 import Spin from "../Spin";
 import { useRouter } from "expo-router";
+import { CrudType } from "@/services/crud";
+import { FormikProps } from "formik";
+import * as yup from "yup";
 
 /**
  * Props para el componente ProTable.
@@ -17,42 +20,7 @@ interface ProTableProps<T> {
   /**
    * API para realizar operaciones de CRUD en la tabla.
    */
-  api: {
-    /**
-     * Obtiene la lista completa de elementos.
-     * @returns {Promise<any>} Una promesa que resuelve en un arreglo de elementos.
-     */
-    index: () => Promise<any>;
-
-    /**
-     * Crea un nuevo elemento.
-     * @param {any} item - El elemento a crear.
-     * @returns {Promise<any>} Una promesa que resuelve con el elemento creado.
-     */
-    create: (item: any) => Promise<any>;
-
-    /**
-     * Obtiene los datos de un elemento específico por su ID.
-     * @param {string} id - El ID del elemento.
-     * @returns {Promise<any>} Una promesa que resuelve con los datos del elemento.
-     */
-    show: (id: string) => Promise<any>;
-
-    /**
-     * Actualiza un elemento existente.
-     * @param {string} id - El ID del elemento a actualizar.
-     * @param {any} item - Los datos actualizados del elemento.
-     * @returns {Promise<any>} Una promesa que resuelve con el elemento actualizado.
-     */
-    update: (id: string, item: any) => Promise<any>;
-
-    /**
-     * Elimina un elemento existente.
-     * @param {string} id - El ID del elemento a eliminar.
-     * @returns {Promise<any>} Una promesa que resuelve cuando el elemento ha sido eliminado.
-     */
-    delete: (id: string) => Promise<any>;
-  };
+  api: CrudType<T>;
 
   /**
    * Configuración de las columnas de la tabla.
@@ -97,27 +65,22 @@ interface ProTableProps<T> {
    * @param {any} values - Los valores actuales del formulario.
    * @returns {React.ReactNode} Un nodo React que representa los inputs.
    */
-  inputs?: (
-    handleChange: (field: string) => void,
-    handleBlur: (field: string) => void,
-    handleSubmit: () => void,
-    values: any
-  ) => React.ReactNode;
+  inputs?: (props: FormikProps<any>) => React.ReactNode;
 
   /**
    * Función que se ejecuta al terminar una acción (crear o editar) (opcional).
    * @param {any} values - Los valores enviados.
-   * @param {string} [id] - El ID del elemento a editar (opcional).
+   * @param {number} [id] - El ID del elemento a editar (opcional).
    */
-  onFinish?: (values: any, id?: string) => void;
+  onFinish?: (values: any, id?: number) => void;
 
   /**
    * Función que se ejecuta antes de realizar una acción, para realizar validaciones u otros procesos (opcional).
    * @param {any} values - Los valores enviados.
-   * @param {string} [id] - El ID del elemento (opcional).
+   * @param {number} [id] - El ID del elemento (opcional).
    * @returns {any} Un valor que puede modificar el flujo de la acción.
    */
-  beforeAction?: (values: any, id?: string) => any;
+  beforeAction?: (values: any, id?: number) => any;
 
   /**
    * Función que se ejecuta después de realizar una acción (opcional).
@@ -125,6 +88,8 @@ interface ProTableProps<T> {
    * @returns {boolean} Un valor booleano que indica si se debe recargar la tabla.
    */
   afterAction?: (item: T) => boolean;
+
+  validationScheme?: (Yup: typeof import("yup")) => any;
 }
 
 /**
@@ -148,6 +113,17 @@ type ActionProp = {
   onPress: (id: string) => void;
 };
 
+//make type
+export type MetaProps = {
+  current_page: number;
+  from: number;
+  to: number;
+  last_page: number;
+  links: any[];
+  total: number;
+  per_page: number;
+};
+
 function ProTable<T>({
   api,
   columns,
@@ -157,6 +133,7 @@ function ProTable<T>({
   onFinish,
   beforeAction = undefined,
   afterAction = undefined,
+  validationScheme = () => ({}),
 }: ProTableProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [actions, setActions] = useState<ActionProp[]>([
@@ -181,16 +158,24 @@ function ProTable<T>({
     },
   ]);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  //filters
+  const [search, setSearch] = useState<string>("");
+  const [meta, setMeta] = useState<MetaProps>({
+    total: 0,
+    current_page: 0,
+    from: 0,
+    to: 0,
+    last_page: 0,
+    links: [],
+    per_page: 0,
+  });
   const [page, setPage] = React.useState<number>(0);
+  const [itemsPerPage, onItemsPerPageChange] = React.useState(10);
+
+  const [loading, setLoading] = useState<boolean>(false);
   const [numberOfItemsPerPageList] = React.useState([10]);
-  const [itemsPerPage, onItemsPerPageChange] = React.useState(
-    numberOfItemsPerPageList[0]
-  );
   const modalRef = useRef<ModalFormRef>(null);
 
-  const from = page * itemsPerPage;
-  const to = Math.min((page + 1) * itemsPerPage, items.length);
   const router = useRouter();
 
   useEffect(() => {
@@ -205,7 +190,7 @@ function ProTable<T>({
       title: "Crear",
       okText: "Guardar",
       onOk: handleOnFinish,
-      action: api.create,
+      validationSchema: validationScheme,
     });
   }
 
@@ -218,10 +203,11 @@ function ProTable<T>({
       onOk: handleOnFinish,
       getValues: api.show,
       id: id,
+      validationSchema: validationScheme,
     });
   }
 
-  async function handleDelete(id: string) {
+  async function handleDelete(id: number) {
     try {
       const res = await api.delete(id);
       reloadTable();
@@ -230,7 +216,7 @@ function ProTable<T>({
     }
   }
 
-  async function handleOnFinish(values: any, id?: string) {
+  async function handleOnFinish(values: any, id?: number) {
     try {
       let beforeActionResponse = undefined;
       let data;
@@ -277,11 +263,26 @@ function ProTable<T>({
     }
   }
 
-  async function reloadTable() {
+  async function reloadTable(newPage?: number) {
     try {
       setLoading(true);
-      const data = await api.index();
-      setItems(data);
+
+      const params = {} as any;
+      params["page"] = newPage ? newPage + 1 : page;
+      params["items_per_page"] = itemsPerPage;
+
+      if (search.length > 3) {
+        params["search"] = search;
+      }
+
+      const data = await api.index({ query: params });
+
+      console.log(data);
+      if (Array.isArray(data.data)) {
+        setItems(data.data);
+      }
+      setPage(data.meta.current_page - 1);
+      setMeta(data.meta);
     } catch (error) {
       console.error(error);
     } finally {
@@ -316,7 +317,12 @@ function ProTable<T>({
         </View>
         <View style={styles.filters}>
           <View style={{ flexDirection: "row", flex: 0.3, gap: 4 }}>
-            <TextInput placeholder="Buscar" style={styles.textInput} />
+            <TextInput
+              placeholder="Buscar"
+              value={search}
+              onChangeText={(e) => setSearch(e)}
+              style={styles.textInput}
+            />
             <TouchableOpacity
               style={[styles.button, { backgroundColor: Colors.primary[600] }]}
             >
@@ -324,7 +330,10 @@ function ProTable<T>({
             </TouchableOpacity>
           </View>
           <View style={{ flexDirection: "row", gap: 4 }}>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity
+              onPress={() => reloadTable()}
+              style={styles.button}
+            >
               <FontAwesome
                 name="repeat"
                 size={16}
@@ -353,8 +362,8 @@ function ProTable<T>({
         <DataTable style={{ flex: 1 }}>
           <DataTable.Header>
             {columns.map((column) => (
-              <DataTable.Title key={column.field}>
-                {column.title}
+              <DataTable.Title style={{}} key={column.field}>
+                <Text variant="titleMedium">{column.title}</Text>
               </DataTable.Title>
             ))}
 
@@ -365,19 +374,21 @@ function ProTable<T>({
                 justifyContent: "center",
               }}
             >
-              Acciones
+              <Text variant="titleMedium">Acciones</Text>
             </DataTable.Title>
           </DataTable.Header>
 
           <View style={{ flex: 1 }}>
-            {items.slice(from, to).map((item) => (
+            {items.map((item) => (
               <DataTable.Row key={item.id}>
                 {columns.map((column) => (
                   <DataTable.Cell
                     numeric={column.type === "numeric"}
                     key={column.field}
                     style={{
-                      justifyContent: column.align ? column.align : "left",
+                      justifyContent: column.align
+                        ? column.align
+                        : "flex-start",
                     }}
                   >
                     {item[column.field]}
@@ -389,7 +400,7 @@ function ProTable<T>({
                     style={{
                       flex: 1,
                       flexDirection: "row",
-                      gap: 4,
+                      gap: 8,
                       justifyContent: "center",
                     }}
                   >
@@ -402,6 +413,7 @@ function ProTable<T>({
                         style={styles.actionButton}
                       >
                         <FontAwesome
+                          // @ts-ignore
                           name={action.icon}
                           size={16}
                           color={Colors.primary[600]}
@@ -415,27 +427,14 @@ function ProTable<T>({
           </View>
           <DataTable.Pagination
             page={page}
-            numberOfPages={Math.ceil(items.length / itemsPerPage)}
-            onPageChange={(page) => {
-              console.log(page);
-              if (page) {
-                setPage(page);
-              }
+            numberOfPages={meta.last_page}
+            onPageChange={(newPage) => {
+              setPage(newPage);
+              reloadTable(newPage);
             }}
-            label={`${from + 1}-${to} of ${items.length}`}
-            selectPageDropdownLabel={"Rows per page"}
+            label={`${meta.from}-${meta.to} of ${meta.total}`}
+            selectPageDropdownLabel="Rows per page"
           />
-
-          {/* <DataTable.Pagination
-            page={page || 0}
-            numberOfPages={3}
-            onPageChange={(newPage) => setPage(newPage)}
-            numberOfItemsPerPageList={[10, 20, 30]}
-            numberOfItemsPerPage={10}
-            showFastPaginationControls
-            selectPageDropdownLabel={"Rows xd"}
-            onItemsPerPageChange={(value) => onItemsPerPageChange(value)}
-          /> */}
         </DataTable>
       </View>
     </Spin>

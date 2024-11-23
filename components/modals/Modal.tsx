@@ -1,3 +1,159 @@
+import { Colors } from "@/constants/Colors";
+import { forwardRef, useImperativeHandle, useState } from "react";
+import { Button, Modal, Portal, Text } from "react-native-paper";
+import Spin from "../Spin";
+import { StyleSheet, View } from "react-native";
+
+export type ModalRef = {
+  close: () => void;
+  open: (options: ModalProps) => void;
+};
+
+interface ModalProps {
+  okText?: string;
+  cancelText?: string;
+  title?: string;
+  content?: (values?: any) => React.ReactNode;
+  action?: () => any;
+  onOk?: () => void;
+  onCancel?: () => void;
+  footer?: React.ReactNode;
+  width?: number;
+}
+
+const ModalComponent = forwardRef<ModalRef>((props, ref) => {
+  const [visible, setVisible] = useState(false);
+  const [options, setOptions] = useState<ModalProps>({});
+  const [loading, setLoading] = useState(false);
+  const [values, setValues] = useState<any>({});
+
+  useImperativeHandle(ref, () => ({
+    open: (options: ModalProps) => {
+      handleOnOpen(options);
+      setOptions(options);
+      setVisible(true);
+
+      if (options.action) {
+        handleAction(options.action);
+      }
+    },
+    close: () => {
+      setVisible(false);
+    },
+  }));
+
+  function handleOnOpen(_options?: ModalProps) {
+    const newOptions = _options || options;
+
+    if (newOptions.onOk) {
+      newOptions.onOk();
+    }
+  }
+
+  function handleOnClose(_options?: ModalProps) {
+    const newOptions = _options || options;
+
+    if (newOptions.onCancel) {
+      newOptions.onCancel();
+    }
+
+    setVisible(false);
+  }
+
+  async function handleAction(action: any) {
+    try {
+      setLoading(true);
+      return await action();
+    } catch (error) {
+      console.log(error);
+      return null;
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Portal
+      theme={{
+        colors: {
+          backdrop: "#00000077",
+        },
+      }}
+    >
+      <Spin loading={loading}>
+        <Modal
+          visible={visible}
+          onDismiss={handleOnClose}
+          contentContainerStyle={[styles.modalContainer]}
+        >
+          <View style={[styles.modalContent, { width: options.width || 500 }]}>
+            <View style={styles.horizontalPadding}>
+              <Text>{options.title && options.title}</Text>
+            </View>
+            <View style={styles.horizontalPadding}>
+              {options.content && !loading && options.content(values)}
+            </View>
+            <View style={styles.horizontalPadding}>
+              {options.footer ? (
+                options.footer
+              ) : (
+                <View>
+                  <Button onPress={() => handleOnClose()}>
+                    {options.cancelText || "Cancelar"}
+                  </Button>
+                  <Button onPress={() => handleOnOpen()}>
+                    {options.okText || "Aceptar"}
+                  </Button>
+                </View>
+              )}
+            </View>
+          </View>
+        </Modal>
+      </Spin>
+    </Portal>
+  );
+});
+
+const styles = StyleSheet.create({
+  modalContainer: {
+    zIndex: 1000,
+    alignSelf: "center",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  horizontalPadding: {
+    paddingHorizontal: 20,
+  },
+  modalContent: {
+    width: 300,
+    paddingVertical: 20,
+    backgroundColor: "white",
+    borderRadius: 10,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: "bold",
+  },
+  divider: {
+    backgroundColor: Colors.black[200],
+    height: 0.5,
+    marginVertical: 8,
+  },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 10,
+  },
+
+  buttons: {
+    borderRadius: 6,
+    borderWidth: 0.6,
+  },
+});
+
+export default ModalComponent;
+
 /* import { Colors } from "@/constants/Colors";
 import { Formik } from "formik";
 import React, { useImperativeHandle, useState, forwardRef } from "react";

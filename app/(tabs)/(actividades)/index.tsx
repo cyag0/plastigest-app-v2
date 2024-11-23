@@ -75,10 +75,10 @@ export default function DashboardScreen() {
           >
             <ScrollView
               style={{
-                flex: 0.65,
+                flex: 1,
               }}
             >
-              <View style={styles.content}>
+              <View style={[styles.content]}>
                 {dashboardItems.map((item, index) => (
                   <AnimatedTouchable
                     key={"menu-item-" + index}
@@ -89,7 +89,7 @@ export default function DashboardScreen() {
                       .mass(1)}
                     style={[
                       styles.card,
-                      { backgroundColor: Colors.primary[400] },
+                      { backgroundColor: Colors.primary[400], maxHeight: 150 },
                     ]}
                     onPress={() => handleNavigation(item.navigateTo)}
                   >
@@ -137,8 +137,6 @@ const styles = StyleSheet.create({
   },
   card: {
     flex: 1,
-    display: "flex",
-    aspectRatio: 1,
     borderRadius: 10,
     padding: 20,
     alignItems: "center",

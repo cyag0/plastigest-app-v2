@@ -1,10 +1,117 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
+import Select from "@/components/FormComponents/Select";
+import FormInput from "@/components/FormComponents/FormInput";
+import itemsToSelect from "@/utils/itemsToSelect";
+import { FormikProps } from "formik";
 
 const index = () => {
-  return <ProTable<App.Entities.Products.Product> api={Api.products.index} />;
+  const [proveedores, setProveedores] = useState<App.Entities.Supplier[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const test = "text";
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await Api.suppliers.index();
+        setProveedores(data.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    console.log("proveedores", proveedores);
+  }, [proveedores]);
+
+  async function onLoad() {
+    try {
+      const data = await Api.suppliers.index();
+      setProveedores(data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  function RenderInputs(props: FormikProps<any>) {
+    console.log("suppliers", proveedores);
+    console.log("test", test);
+    console.log("items", itemsToSelect(proveedores));
+
+    if (proveedores.length === 0) return null;
+    return (
+      <>
+        <FormInput
+          formProps={props}
+          name="name"
+          label={"Nombre"}
+          placeholder={"Nombre del producto"}
+        />
+        <FormInput
+          name="price"
+          formProps={props}
+          label={"Precio"}
+          placeholder={"Precio del producto"}
+        />
+        <FormInput
+          name="description"
+          formProps={props}
+          label={"Descripción"}
+          placeholder={"Descripción del producto"}
+        />
+        <Select
+          placeholder={{
+            label: "Selecciona un proveedor",
+            value: null,
+          }}
+          items={itemsToSelect(proveedores)}
+          name="supplier_id"
+          FormProps={props}
+        />
+      </>
+    );
+  }
+
+  return (
+    !loading && (
+      <ProTable<App.Entities.Products.Product>
+        validationScheme={(yup) => {
+          return {
+            name: yup.string().required("El nombre es requerido"),
+            supplier_id: yup.number().required("El proveedor es requerido"),
+            price: yup.number().required("El precio es requerido"),
+            description: yup.string().required("La descripción es requerida"),
+          };
+        }}
+        inputs={RenderInputs}
+        title="Productos"
+        columns={[
+          {
+            title: "Nombre",
+            field: "name",
+          },
+          {
+            title: "Precio",
+            field: "price",
+          },
+          {
+            title: "Proveedor",
+            field: "supplier",
+          },
+          {
+            title: "Descripción",
+            field: "description",
+          },
+        ]}
+        api={Api.products}
+      />
+    )
+  );
 };
 
 export default index;

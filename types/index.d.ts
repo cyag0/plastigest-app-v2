@@ -4,10 +4,11 @@ namespace App {
       name: string;
       email: string;
       password: string;
+      id: number;
     }
 
     interface Supplier {
-      id: string;
+      id: number;
       name: string;
       email: string;
       phone: string;
@@ -16,7 +17,7 @@ namespace App {
 
     namespace Products {
       interface Product {
-        id: string;
+        id: number;
         name: string;
         price: number;
         description?: string;

@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
-import { Formik } from "formik";
+import { Formik, FormikProps } from "formik";
 import React, { useImperativeHandle, useState, forwardRef } from "react";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, ScrollView } from "react-native";
 import {
   ActivityIndicator,
   Divider,
@@ -10,6 +10,7 @@ import {
   Text,
   Button,
 } from "react-native-paper";
+import * as Yup from "yup";
 
 export type ModalFormRef = {
   close: () => void;
@@ -17,17 +18,12 @@ export type ModalFormRef = {
 };
 
 export interface ModalFormProps {
-  content?: (
-    handleChange: (field: string) => void,
-    handleBlur: (field: string) => void,
-    handleSubmit: () => void,
-    values: any
-  ) => React.ReactNode;
+  content?: (props: FormikProps<any>) => React.ReactNode;
   title?: string;
   footer?: React.ReactNode;
   onClose?: () => void;
   onOpen?: () => void;
-  onOk?: (values: any, id?: string) => boolean | Promise<boolean>;
+  onOk?: (values: any, id?: number) => boolean | Promise<boolean>;
   okText?: string;
   cancelText?: string;
   width?: number;
@@ -36,6 +32,7 @@ export interface ModalFormProps {
   action?: any; // esta es la ruta de la acción que se ejecutará al presionar el botón de OK
   initialValues?: any;
   getValues?: any; //ruta para obtener los valores iniciales del formulario;
+  validationSchema?: any;
 }
 
 const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
@@ -62,7 +59,6 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
       if (options.onOpen) {
         await options.onOpen();
       }
-      console.log("options", options);
       //funcion para obtener los datos iniciales del formulario
       if (options.id) {
         const data = await options.getValues(options.id);
@@ -102,13 +98,15 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
         {loading ? (
           <ActivityIndicator animating={true} color="#fff" />
         ) : (
-          <ModalContent
-            setLoading={setLoading}
-            initialValues={initialValues}
-            setIsVisible={setIsVisible}
-            options={options}
-            onClose={onClose}
-          />
+          <ScrollView>
+            <ModalContent
+              setLoading={setLoading}
+              initialValues={initialValues}
+              setIsVisible={setIsVisible}
+              options={options}
+              onClose={onClose}
+            />
+          </ScrollView>
         )}
       </Modal>
     </Portal>
@@ -164,6 +162,16 @@ function ModalContent({
     }
   }
 
+  function handleValidationScheme() {
+    if (options.validationSchema) {
+      return options.validationSchema(Yup) as any;
+    } else {
+      return {};
+    }
+  }
+
+  const ValidationScheme = Yup.object().shape(handleValidationScheme());
+
   return (
     <View style={[styles.modalContent, { width: options.width || 500 }]}>
       {/* Header del modal */}
@@ -177,38 +185,45 @@ function ModalContent({
       <Divider style={styles.divider} />
 
       {/* Contenido del modal */}
-      <Formik initialValues={initialValues} onSubmit={onOk}>
-        {({ handleChange, handleBlur, handleSubmit, values }) => (
-          <View style={[styles.horizontalPadding]}>
-            {/* Inputs del modal o contenido */}
-            <View style={{ gap: 10 }}>
-              {options.content &&
-                options.content(handleChange, handleBlur, handleSubmit, values)}
-            </View>
+      <Formik
+        validationSchema={ValidationScheme}
+        initialValues={initialValues}
+        onSubmit={onOk}
+      >
+        {(props) => {
+          return (
+            <View style={[styles.horizontalPadding]}>
+              {/* Inputs del modal o contenido */}
+              <View style={{ gap: 10 }}>
+                {options.content && options.content(props)}
+              </View>
 
-            {/* Footer del modal */}
-            <Divider style={styles.divider} />
-            <View style={[styles.footer]}>
-              {options.footer && options.footer}
-              <Button
-                style={[styles.buttons]}
-                mode="outlined"
-                onPress={onClose}
-              >
-                {options.cancelText || "Cancelar"}
-              </Button>
-              <Button
-                style={[styles.buttons]}
-                mode="contained"
-                contentStyle={{ padding: 0 }}
-                onPress={handleSubmit}
-                textColor="white"
-              >
-                {options.okText || "OK"}
-              </Button>
+              {/* Footer del modal */}
+              <Divider style={styles.divider} />
+              <View style={[styles.footer]}>
+                {options.footer && options.footer}
+                <Button
+                  style={[styles.buttons]}
+                  mode="outlined"
+                  onPress={onClose}
+                >
+                  {options.cancelText || "Cancelar"}
+                </Button>
+                <Button
+                  style={[styles.buttons]}
+                  mode="contained"
+                  contentStyle={{ padding: 0 }}
+                  onPress={() => {
+                    props.handleSubmit();
+                  }}
+                  textColor="white"
+                >
+                  {options.okText || "OK"}
+                </Button>
+              </View>
             </View>
-          </View>
-        )}
+          );
+        }}
       </Formik>
     </View>
   );
@@ -251,4 +266,5 @@ const styles = StyleSheet.create({
     borderWidth: 0.6,
   },
 });
+
 export default ModalFormComponent;

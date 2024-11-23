@@ -3,6 +3,7 @@ import React from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
 import { TextInput } from "react-native-paper";
+import FormInput from "@/components/FormComponents/FormInput";
 
 const { width } = Dimensions.get("window");
 
@@ -19,7 +20,7 @@ const index = () => {
       name: string;
       description: string;
     }>
-      title={"Suppliers"}
+      title={"Proveedores"}
       api={Api.suppliers}
       columns={[
         {
@@ -27,26 +28,35 @@ const index = () => {
           field: "name",
         },
         {
-          title: "Contacto",
-          field: "contacto",
+          title: "Ubicacion",
+          field: "address",
+        },
+        {
+          title: "Telefono",
+          field: "phone",
         },
       ]}
-      inputs={(handleChange, handleBlur, handleSubmit, values) => {
+      inputs={(props) => {
         return (
           <>
-            <TextInput
-              label={"Nombre"}
-              onChangeText={handleChange("name")}
-              onBlur={handleBlur("name")}
-              value={values.name}
+            <FormInput
+              formProps={props}
+              name="name"
+              label="Nombre"
               placeholder="Botella, Tapadera, etc."
             />
-            <TextInput
-              label={"Contacto"}
+            <FormInput
+              formProps={props}
+              name="address"
+              label="Direccion"
               placeholder="Numero de telefono, correo, etc.."
-              onChangeText={handleChange("contacto")}
-              onBlur={handleBlur("contacto")}
-              value={values.contacto}
+            />
+
+            <FormInput
+              formProps={props}
+              name="phone"
+              label="Numero"
+              placeholder="Numero de telefono, correo, etc.."
             />
           </>
         );

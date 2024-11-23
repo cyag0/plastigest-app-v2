@@ -1,15 +1,9 @@
+import clientAxios from "@/utils/axios";
 import React, { createContext, useEffect } from "react";
-import {
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  User,
-  signOut,
-} from "firebase/auth";
-import { auth } from "../firebase";
 
 interface AuthContextType {
-  user: User | null;
-  login: (data: { email: string; password: string }) => void;
+  user: App.Entities.User | null;
+  login: (data: App.Entities.User) => void;
   logout: () => void;
   authLoading: boolean;
 }
@@ -22,45 +16,26 @@ export default function AuthContextProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = React.useState<User | null>(null);
+  const [user, setUser] = React.useState<App.Entities.User | null>({
+    id: 1,
+    name: "John Doe",
+    email: "cyag.cesar@gmail.com",
+    password: "1234",
+  });
   const [authLoading, setAuthLoading] = React.useState<boolean>(true);
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      console.log("user", user);
-      if (user) {
-        setUser(user);
-      } else {
-        setUser(null);
-      }
-
-      setAuthLoading(false);
-    });
-
-    // Limpieza de la suscripción al desmontar el componente
-    return () => unsubscribe();
-  }, [auth]);
-
-  async function login(data: { email: string; password: string }) {
-    const { email, password } = data;
-    signInWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        setUser(user);
-      })
-      .catch((error) => {
-        throw new Error(error.message);
-      });
+  async function login(data: App.Entities.User) {
+    try {
+      const user = await clientAxios.post("login", data);
+    } catch (error) {}
   }
 
   async function logout() {
-    signOut(auth)
-      .then(() => {
-        // Sign-out successful.
-      })
-      .catch((error) => {
-        // An error happened.
-      });
+    try {
+      await clientAxios.post("logout");
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
