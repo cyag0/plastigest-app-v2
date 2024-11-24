@@ -39,11 +39,6 @@ const index = () => {
   }
 
   function RenderInputs(props: FormikProps<any>) {
-    console.log("suppliers", proveedores);
-    console.log("test", test);
-    console.log("items", itemsToSelect(proveedores));
-
-    if (proveedores.length === 0) return null;
     return (
       <>
         <FormInput

@@ -86,6 +86,12 @@ export const dashboardItems = [
     navigateTo: "(provedores)",
     color: Colors.primary[500],
   },
+  {
+    title: "Roles y Permisos",
+    icon: "circle",
+    navigateTo: "(rolesPermisos)",
+    color: Colors.primary[500],
+  },
 ];
 
 export default function DrawerLayout() {
