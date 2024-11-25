@@ -16,46 +16,65 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
     npx expo start
    ```
 
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
 
 # Crear crud simple
 
 - en services crear una carpeta y poner lo siguiente
 
+```bash
+
 import Crud from "../crud";
 export default { ...Crud<App.Entities.Supplier>("tabla_nombre") };
+
+```
+
+Despues tienes que hacer lo siguiente:
 
 - Crear la ruta app/(tabs)/(actividades)/(reemplazar_por_nombre)
 - usar el componente ProTable hay un ejemplo en app/(tabs)/(actividades)(proveedores)
 - completar los siguientes props, api, columns e inputs
+
+## Props
+
+### Inputs
+* usar el FormInput para los campos de texto y el componente Select
+
+Ejemplo
+
+```bash
+   inputs={(props) => {
+        return (
+          <>
+            <FormInput
+              formProps={props}
+              name="name"
+              label="Nombre"
+              placeholder="Botella, Tapadera, etc."
+            />
+            <FormInput
+              formProps={props}
+              name="address"
+              label="Direccion"
+              placeholder="Numero de telefono, correo, etc.."
+            />
+
+            <FormInput
+              formProps={props}
+              name="phone"
+              label="Numero"
+              placeholder="Numero de telefono, correo, etc.."
+            />
+          </>
+        );
+      }}
+
+```
+
+#### FormInput Props
+* __formProps__: tienes que pasarle la variable que se recive de la funcion como en el ejemplo (props)
+* __name__: este campo tiene que ser identico a la columna en la base de datos
+* __label__: La etiqueta que se muestra para identificar el campo
+* __placeholder__: una pequena descripcion de lo que se pone en el campo
+
+#### Select Props
+
