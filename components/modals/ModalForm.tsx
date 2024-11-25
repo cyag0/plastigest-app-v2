@@ -1,7 +1,7 @@
 import { Colors } from "@/constants/Colors";
 import { Formik, FormikProps } from "formik";
 import React, { useImperativeHandle, useState, forwardRef } from "react";
-import { View, StyleSheet, ScrollView } from "react-native";
+import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import {
   ActivityIndicator,
   Divider,
@@ -34,6 +34,10 @@ export interface ModalFormProps {
   getValues?: any; //ruta para obtener los valores iniciales del formulario;
   validationSchema?: any;
 }
+
+const displayWidth = Dimensions.get("window").width;
+
+const isTablet = displayWidth >= 768;
 
 const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
   const [isVisible, setIsVisible] = useState(false);
@@ -93,12 +97,17 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
       <Modal
         visible={isVisible}
         onDismiss={onClose}
-        contentContainerStyle={[styles.modalContainer]}
+        contentContainerStyle={[
+          styles.modalContainer,
+          {
+            width: "100%",
+          },
+        ]}
       >
         {loading ? (
           <ActivityIndicator animating={true} color="#fff" />
         ) : (
-          <ScrollView>
+          <ScrollView style={isTablet ? {} : { width: "95%" }}>
             <ModalContent
               setLoading={setLoading}
               initialValues={initialValues}
@@ -173,7 +182,12 @@ function ModalContent({
   const ValidationScheme = Yup.object().shape(handleValidationScheme());
 
   return (
-    <View style={[styles.modalContent, { width: options.width || 500 }]}>
+    <View
+      style={[
+        styles.modalContent,
+        { width: isTablet ? options.width || 500 : "100%" },
+      ]}
+    >
       {/* Header del modal */}
       <View style={styles.horizontalPadding}>
         {options.title && (
@@ -240,7 +254,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   modalContent: {
-    width: 300,
     paddingVertical: 20,
     backgroundColor: "white",
     borderRadius: 10,

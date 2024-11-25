@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import React from "react";
+import ProTable from "@/components/ProComponents/ProTable";
 
 type Resource = {
   id: number;
@@ -8,9 +9,5 @@ type Resource = {
 };
 
 export default function index() {
-  return (
-    <View>
-      <Text>index</Text>
-    </View>
-  );
+  return <View></View>;
 }

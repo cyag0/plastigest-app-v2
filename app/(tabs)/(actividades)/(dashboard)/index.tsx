@@ -8,10 +8,10 @@ import {
   SafeAreaView,
   Dimensions,
 } from "react-native";
-import { FontAwesome } from "@expo/vector-icons";
+import { FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { dashboardItems } from "./_layout";
+import { dashboardItems } from "../_layout";
 import Animated, { Layout, FadeInDown } from "react-native-reanimated";
 
 const { width } = Dimensions.get("window");
@@ -46,9 +46,11 @@ const colores = {
 export default function DashboardScreen() {
   const navigator = useRouter();
 
+  const isTablet = width >= 768;
+
   const handleNavigation = (screen: string) => {
     if (!screen) return;
-    navigator.push(screen);
+    navigator.push(screen as any);
   };
 
   const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
@@ -59,7 +61,7 @@ export default function DashboardScreen() {
         style={{
           flex: 1,
           backgroundColor: Colors.black[100],
-          flexDirection: "row",
+          flexDirection: isTablet ? "row" : "column",
           gap: 10,
           padding: 10,
         }}
@@ -91,10 +93,14 @@ export default function DashboardScreen() {
                       styles.card,
                       { backgroundColor: Colors.primary[400], maxHeight: 150 },
                     ]}
-                    onPress={() => handleNavigation(item.navigateTo)}
+                    onPress={() => handleNavigation(item.route)}
                   >
-                    <FontAwesome name={item.icon} size={24} color="#FFFFFF" />
-                    <Text style={styles.cardText}>{item.title}</Text>
+                    <MaterialCommunityIcons
+                      name={item.icon}
+                      size={24}
+                      color="#FFFFFF"
+                    />
+                    <Text style={styles.cardText}>{item.name}</Text>
                   </AnimatedTouchable>
                 ))}
               </View>

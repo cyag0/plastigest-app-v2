@@ -24,5 +24,25 @@ namespace App {
         img?: string;
       }
     }
+
+    namespace Roles {
+      interface Role {
+        id: number;
+        name: string;
+        description: string;
+      }
+
+      interface Resource {
+        id: number;
+        name: string;
+        description: string;
+        resource: ResourceType;
+        route: string;
+        icon: string;
+        category?: string;
+      }
+
+      type ResourceType = "users" | "products" | "suppliers" | "roles";
+    }
   }
 }

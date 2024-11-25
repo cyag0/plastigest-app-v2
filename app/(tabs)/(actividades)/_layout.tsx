@@ -1,15 +1,69 @@
 import React, { useRef, useState } from "react";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Animated, StyleSheet, View } from "react-native";
+import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, IconButton } from "react-native-paper";
+import { Button, IconButton, Text } from "react-native-paper";
+
+const { width } = Dimensions.get("window");
+const isTablet = width >= 768;
+
+const BASE_URL = "(tabs)/(actividades)/";
+export const dashboardItems: App.Entities.Roles.Resource[] = [
+  {
+    name: "Dashboard",
+    icon: "view-dashboard",
+    route: "",
+    description: "Dashboard de la tienda",
+    id: 0,
+    resource: "dashboard",
+  },
+  {
+    name: "Productos",
+    icon: "package",
+    route: "(productos)",
+    description: "Administra los productos de la tienda",
+    id: 1,
+    resource: "products",
+    category: "inventory",
+  },
+  {
+    name: "Usuarios",
+    icon: "account",
+    route: "(usuarios)",
+    description: "Administra los usuarios de la tienda",
+    id: 2,
+    resource: "users",
+    category: "admin",
+  },
+  {
+    name: "Proveedores",
+    icon: "truck",
+    route: "(provedores)",
+    description: "Administra los proveedores de la tienda",
+    id: 3,
+    resource: "suppliers",
+    category: "inventory",
+  },
+  {
+    name: "Roles y Permisos",
+    icon: "shield-account",
+    route: "(rolesPermisos)",
+    description: "Administra los roles y permisos de la sucursal",
+    id: 4,
+    resource: "roles",
+    category: "admin",
+  },
+];
 
 function _layout() {
   return (
-    <Stack initialRouteName="index" screenOptions={{ headerShown: false }}>
+    <Stack
+      initialRouteName="(dashboard)"
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen
-        name="index"
+        name="(dashboard)"
         options={{ headerShown: false, title: "Dashboard" }}
       />
       <Stack.Screen name="inventarioSemanal" />
@@ -43,63 +97,12 @@ function _layout() {
   );
 }
 
-export const dashboardItems = [
-  {
-    title: "Inventario",
-    icon: "circle",
-    navigateTo: "(inventario)",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Inventario Semanal",
-    icon: "calendar",
-    navigateTo: "inventarioSemanal",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Entradas y Salidas",
-    icon: "circle",
-    navigateTo: "entradasSalidas",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Usuarios",
-    icon: "circle",
-    navigateTo: "(usuarios)",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Sucursales",
-    icon: "circle",
-    navigateTo: "sucursales",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Productos",
-    icon: "circle",
-    navigateTo: "(productos)",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Proveedores",
-    icon: "circle",
-    navigateTo: "(provedores)",
-    color: Colors.primary[500],
-  },
-  {
-    title: "Roles y Permisos",
-    icon: "circle",
-    navigateTo: "(rolesPermisos)",
-    color: Colors.primary[500],
-  },
-];
-
 export default function DrawerLayout() {
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<string | null>(
-    "(productos)"
-  );
+  const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const animatedWidth = useRef(new Animated.Value(100)).current;
+
+  const navigator = useRouter();
 
   const toggleDrawer = () => {
     setOpen(!open);
@@ -112,95 +115,143 @@ export default function DrawerLayout() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View
-        style={{
-          flexDirection: "row",
-          flex: 1,
-          backgroundColor: Colors.primary[400],
-        }}
-      >
-        <Animated.View
+      {isTablet ? (
+        <View
           style={{
-            width: animatedWidth,
-            alignItems: !open ? "center" : "flex-end",
-            padding: 16,
-          }}
-        >
-          <IconButton
-            icon={"menu"}
-            iconColor={"#fff"}
-            size={20}
-            onPress={toggleDrawer}
-          />
-
-          <Animated.View
-            style={[
-              {
-                gap: 16,
-                width: open ? "100%" : 80, // Ajusta el ancho según el estado
-                alignItems: open ? "flex-start" : "center", // Cambia alineación
-                overflow: "hidden",
-                borderRadius: 16, // Un poco de suavidad en los bordes
-                transition: "all 0.3s ease", // Transición fluida
-              },
-            ]}
-          >
-            {dashboardItems.map((item, index) => (
-              <Button
-                key={"menu-item-" + index}
-                icon={item.icon}
-                style={{
-                  borderRadius: 12,
-                  alignItems: "center",
-                  backgroundColor:
-                    selectedItem === item.navigateTo
-                      ? Colors.primary[400]
-                      : "transparent", // Destaca el seleccionado
-                  width: open ? "100%" : 60, // Botón compacto cuando está cerrado
-                  flexDirection: "row",
-                  padding: 10, // Espaciado interno
-                  transition: "all 0.3s ease", // Transición fluida
-                }}
-                textColor="#fff"
-                mode={selectedItem === item.navigateTo ? "contained" : "text"}
-                contentStyle={{
-                  padding: 0,
-                  width: "100%",
-                  justifyContent: open ? "flex-start" : "center", // Centra iconos cuando está cerrado
-                }}
-                labelStyle={{
-                  color: "#fff",
-                  fontSize: 16,
-                  opacity: open ? 1 : 0, // Oculta el texto suavemente cuando está cerrado
-                  transition: "opacity 0.3s ease", // Transición para la opacidad
-                }}
-                onPress={() => console.log("Navigate to", item.navigateTo)}
-              >
-                {open && item.title}
-              </Button>
-            ))}
-          </Animated.View>
-        </Animated.View>
-        <Animated.View
-          style={{
+            flexDirection: "row",
             flex: 1,
             backgroundColor: Colors.primary[400],
-            padding: 16,
-            paddingLeft: 0,
           }}
         >
-          <View
+          <Animated.View
             style={{
-              flex: 1,
-              borderRadius: 20,
-              overflow: "hidden",
+              width: animatedWidth,
+              alignItems: !open ? "center" : "flex-end",
+              padding: 16,
             }}
           >
-            <_layout />
-          </View>
-        </Animated.View>
-      </View>
+            <IconButton
+              icon={"menu"}
+              iconColor={"#fff"}
+              size={20}
+              onPress={toggleDrawer}
+            />
+
+            <Animated.View
+              style={[
+                {
+                  width: open ? "100%" : 80, // Ajusta el ancho según el estado
+                  overflow: "hidden",
+                  borderRadius: 16, // Un poco de suavidad en los bordes
+                },
+              ]}
+            >
+              {dashboardItems.map((item, index) => (
+                <MenuButton
+                  item={item}
+                  selectedItem={selectedItem}
+                  setSelectedItem={setSelectedItem}
+                  index={index}
+                  open={open}
+                />
+              ))}
+            </Animated.View>
+          </Animated.View>
+          <Animated.View
+            style={{
+              flex: 1,
+              backgroundColor: Colors.primary[400],
+              padding: 16,
+              paddingLeft: 0,
+            }}
+          >
+            <View
+              style={{
+                flex: 1,
+                borderRadius: 20,
+                overflow: "hidden",
+              }}
+            >
+              <_layout />
+            </View>
+          </Animated.View>
+        </View>
+      ) : (
+        <_layout />
+      )}
     </SafeAreaView>
+  );
+}
+
+function MenuButton({
+  item,
+  selectedItem,
+  index,
+  open,
+  setSelectedItem,
+}: {
+  item: App.Entities.Roles.Resource;
+  selectedItem: string | null;
+  index: number;
+  open: boolean;
+  setSelectedItem: React.Dispatch<React.SetStateAction<string | null>>;
+}) {
+  const navigator = useRouter();
+
+  function handleNavigation(route: string) {
+    if (item.route === "") {
+      setSelectedItem(item.route);
+      navigator.replace("/(tabs)/(actividades)/(dashboard)");
+      return;
+    }
+
+    setSelectedItem(item.route);
+    navigator.navigate(BASE_URL + route);
+  }
+
+  return (
+    <View
+      style={{
+        width: "100%",
+        alignItems: "center",
+      }}
+    >
+      {open ? (
+        <Button
+          key={"menu-item-" + index}
+          icon={item.icon}
+          style={{
+            width: "100%",
+            borderRadius: 12,
+            padding: 6, // Espaciado interno
+            alignItems: "stretch",
+            transition: "all 0.3s ease", // Transición fluida
+          }}
+          textColor="#fff"
+          mode={selectedItem === item.route ? "contained" : "text"}
+          labelStyle={{
+            color: "#fff",
+            fontSize: 24,
+          }}
+          onPress={() => {
+            handleNavigation(item.route);
+          }}
+        >
+          {open && <Text style={{ fontSize: 16, flex: 1 }}>{item.name}</Text>}
+        </Button>
+      ) : (
+        <IconButton
+          icon={item.icon}
+          size={24}
+          containerColor={
+            selectedItem === item.route ? Colors.primary[600] : "transparent"
+          }
+          mode="contained-tonal"
+          iconColor="#fff"
+          onPress={() => handleNavigation(item.route)}
+        />
+      )}
+    </View>
   );
 }
 
