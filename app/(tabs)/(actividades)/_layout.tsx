@@ -54,6 +54,15 @@ export const dashboardItems: App.Entities.Roles.Resource[] = [
     resource: "roles",
     category: "admin",
   },
+  {
+    name: "Suscursales",
+    icon: "location",
+    route: "(locations)",
+    description: "Administra los roles y permisos de la sucursal",
+    id: 5,
+    resource: "locations",
+    category: "inventory",
+  },
 ];
 
 function _layout() {

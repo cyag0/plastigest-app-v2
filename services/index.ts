@@ -1,3 +1,4 @@
+import locations from "./locations";
 import movimientos from "./movimientos";
 import products from "./products";
 import suppliers from "./suppliers";
@@ -8,6 +9,7 @@ const Api = {
   suppliers,
   movimientos,
   usuarios,
+  locations,
 };
 
 export default Api;

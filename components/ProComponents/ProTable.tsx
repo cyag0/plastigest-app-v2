@@ -426,13 +426,13 @@ function ProTable<T>({
             ))}
           </View>
           <DataTable.Pagination
-            page={page}
-            numberOfPages={meta.last_page}
+            page={page || 0}
+            numberOfPages={meta.last_page || 0}
             onPageChange={(newPage) => {
               setPage(newPage);
               reloadTable(newPage);
             }}
-            label={`${meta.from}-${meta.to} of ${meta.total}`}
+            label={`${meta.from || 0}-${meta.to || 0} of ${meta.total || 0}`}
             selectPageDropdownLabel="Rows per page"
           />
         </DataTable>
