@@ -1,3 +1,4 @@
+import locations from "./locations";
 import movimientos from "./movimientos";
 import products from "./products";
 import resources from "./roles/resources";
@@ -15,6 +16,7 @@ const Api = {
     roles,
     resources,
   },
+  locations,
 };
 
 export default Api;

@@ -39,13 +39,19 @@ namespace App {
       }
     }
 
+    interface Location {
+      id: number;
+      name: string;
+      address: string;
+      in_charge: string;
+    }
+
     namespace Roles {
       interface Role {
         id: number;
         name: string;
         description: string;
       }
-
       interface Resource {
         id: number;
         name: string;
@@ -56,7 +62,12 @@ namespace App {
         category?: string;
       }
 
-      type ResourceType = "users" | "products" | "suppliers" | "roles";
+      type ResourceType =
+        | "users"
+        | "products"
+        | "suppliers"
+        | "roles"
+        | "locations";
     }
   }
 }
