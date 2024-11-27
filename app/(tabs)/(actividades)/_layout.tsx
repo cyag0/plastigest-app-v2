@@ -34,7 +34,7 @@ export const dashboardItems: App.Entities.Roles.Resource[] = [
   {
     name: "Usuarios",
     icon: "account",
-    route: "(usuarios)",
+    route: "(users)",
     description: "Administra los usuarios de la tienda",
     id: 2,
     resource: "users",

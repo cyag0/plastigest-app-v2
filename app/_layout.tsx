@@ -45,6 +45,7 @@ function RootLayout() {
       primary: Colors.primary[600],
       secondary: "tomato",
       surfaceVariant: Colors.primary[100],
+      placeholder: Colors.black[200],
     },
     button: {
       contained: {

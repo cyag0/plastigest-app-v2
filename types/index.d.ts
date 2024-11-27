@@ -2,9 +2,16 @@ namespace App {
   namespace Entities {
     interface User {
       name: string;
+      last_name: string;
       email: string;
       password: string;
       id: number;
+      phone_number: string;
+      role_id: number;
+      role: Roles.Role;
+      address: string;
+      is_active: boolean;
+      image: string;
     }
 
     interface Supplier {
@@ -12,6 +19,13 @@ namespace App {
       name: string;
       email: string;
       phone: string;
+      address: string;
+    }
+
+    interface Location {
+      id: number;
+      name: string;
+      in_charge: string;
       address: string;
     }
 
