@@ -3,11 +3,19 @@ import { Stack, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button, IconButton, Text } from "react-native-paper";
+import {
+  Appbar,
+  Button,
+  IconButton,
+  Modal,
+  Portal,
+  Text,
+} from "react-native-paper";
 import MenuContextContextProvider, {
   useMenuContext,
 } from "@/context/MenuContext";
 import { Link } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -113,6 +121,7 @@ function _layout() {
 function DrawerLayout() {
   const [open, setOpen] = useState<boolean>(false);
   const animatedWidth = useRef(new Animated.Value(100)).current;
+  const [isDrawerVisible, setDrawerVisible] = useState(false);
 
   const menuProps = useMenuContext();
 
@@ -192,7 +201,14 @@ function DrawerLayout() {
           </Animated.View>
         </View>
       ) : (
-        <_layout />
+        <>
+          <Appbar>
+            <Appbar.Action icon="menu" onPress={() => {}} />
+            <Appbar.Content title="Actividades" />
+          </Appbar>
+
+          {/* <_layout /> */}
+        </>
       )}
     </SafeAreaView>
   );
@@ -292,5 +308,11 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
+  },
+  drawerContainer: {
+    backgroundColor: "white",
+    padding: 20,
+    margin: 20,
+    borderRadius: 10,
   },
 });

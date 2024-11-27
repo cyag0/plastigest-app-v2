@@ -14,6 +14,7 @@ import { Dimensions, SafeAreaView, Text, View } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
 import AuthContextProvider, { useAuthContext } from "@/context/AuthContext";
+import AppContextProvider from "@/context/AppContext";
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -65,14 +66,16 @@ function RootLayout() {
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <PaperProvider theme={customTheme}>
-        <Stack initialRouteName={!user ? "(auth)" : "(tabs)"}>
-          {!user ? (
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-          ) : (
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-          )}
-          <Stack.Screen name="+not-found" />
-        </Stack>
+        <AppContextProvider>
+          <Stack initialRouteName={!user ? "(auth)" : "(tabs)"}>
+            {!user ? (
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            ) : (
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+            )}
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </AppContextProvider>
       </PaperProvider>
     </ThemeProvider>
   );

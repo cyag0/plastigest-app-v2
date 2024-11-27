@@ -343,6 +343,9 @@ function Table<T>({
         <View style={styles.filters}>
           <View style={{ flexDirection: "row", gap: 4 }}>
             <TextInput
+              onSubmitEditing={() => {
+                reloadTable();
+              }}
               placeholder="Buscar"
               value={search}
               onChangeText={(e) => setSearch(e)}

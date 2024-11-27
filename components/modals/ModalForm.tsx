@@ -239,7 +239,20 @@ function ModalContent({
                   style={[styles.buttons]}
                   mode="contained"
                   contentStyle={{ padding: 0 }}
-                  onPress={() => {
+                  onPress={async () => {
+                    const isValid = await props.validateForm();
+                    const names = Object.keys(props.errors);
+
+                    if (names.length > 0) {
+                      props.setTouched(
+                        names.reduce((acc, name) => {
+                          acc[name] = true;
+                          return acc;
+                        }, {})
+                      );
+                      return;
+                    }
+
                     props.handleSubmit();
                   }}
                   textColor="white"
