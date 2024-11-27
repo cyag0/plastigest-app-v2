@@ -18,6 +18,7 @@ const index = () => {
   return (
     <ProTable<App.Entities.Supplier>
       title={"Proveedores"}
+      resource="suppliers"
       api={Api.suppliers}
       columns={[
         {

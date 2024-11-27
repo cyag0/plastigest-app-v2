@@ -4,6 +4,10 @@ import { Colors } from "@/constants/Colors";
 import { Animated, Dimensions, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Button, IconButton, Text } from "react-native-paper";
+import MenuContextContextProvider, {
+  useMenuContext,
+} from "@/context/MenuContext";
+import { Link } from "expo-router";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -97,10 +101,11 @@ function _layout() {
   );
 }
 
-export default function DrawerLayout() {
+function DrawerLayout() {
   const [open, setOpen] = useState<boolean>(false);
-  const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const animatedWidth = useRef(new Animated.Value(100)).current;
+
+  const menuProps = useMenuContext();
 
   const navigator = useRouter();
 
@@ -148,9 +153,10 @@ export default function DrawerLayout() {
             >
               {dashboardItems.map((item, index) => (
                 <MenuButton
+                  key={item.id}
                   item={item}
-                  selectedItem={selectedItem}
-                  setSelectedItem={setSelectedItem}
+                  selectedItem={menuProps.selectedMenu}
+                  setSelectedItem={menuProps.setSelectedMenu}
                   index={index}
                   open={open}
                 />
@@ -183,6 +189,14 @@ export default function DrawerLayout() {
   );
 }
 
+export default function DrawerLayoutWithMenu() {
+  return (
+    <MenuContextContextProvider>
+      <DrawerLayout />
+    </MenuContextContextProvider>
+  );
+}
+
 function MenuButton({
   item,
   selectedItem,
@@ -200,12 +214,10 @@ function MenuButton({
 
   function handleNavigation(route: string) {
     if (item.route === "") {
-      setSelectedItem(item.route);
       navigator.replace("/(tabs)/(actividades)/(dashboard)");
       return;
     }
 
-    setSelectedItem(item.route);
     navigator.navigate(BASE_URL + route);
   }
 
@@ -228,7 +240,7 @@ function MenuButton({
             transition: "all 0.3s ease", // Transición fluida
           }}
           textColor="#fff"
-          mode={selectedItem === item.route ? "contained" : "text"}
+          mode={selectedItem === item.resource ? "contained" : "text"}
           labelStyle={{
             color: "#fff",
             fontSize: 24,
@@ -244,11 +256,13 @@ function MenuButton({
           icon={item.icon}
           size={24}
           containerColor={
-            selectedItem === item.route ? Colors.primary[600] : "transparent"
+            selectedItem === item.resource ? Colors.primary[600] : "transparent"
           }
           mode="contained-tonal"
           iconColor="#fff"
-          onPress={() => handleNavigation(item.route)}
+          onPress={(e) => {
+            handleNavigation(item.route);
+          }}
         />
       )}
     </View>

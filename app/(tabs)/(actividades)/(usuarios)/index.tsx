@@ -8,6 +8,7 @@ const index = () => {
   return (
     <ProTable<App.Entities.User>
       api={Api.usuarios}
+      resource="users"
       columns={[
         {
           title: "Nombre",

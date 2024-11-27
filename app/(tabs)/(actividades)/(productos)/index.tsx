@@ -73,39 +73,47 @@ const index = () => {
   }
 
   return (
-    !loading && (
-      <ProTable<App.Entities.Products.Product>
-        validationScheme={(yup) => {
-          return {
-            name: yup.string().required("El nombre es requerido"),
-            supplier_id: yup.number().required("El proveedor es requerido"),
-            price: yup.number().required("El precio es requerido"),
-            description: yup.string().required("La descripción es requerida"),
-          };
-        }}
-        inputs={RenderInputs}
-        title="Productos"
-        columns={[
-          {
-            title: "Nombre",
-            field: "name",
-          },
-          {
-            title: "Precio",
-            field: "price",
-          },
-          {
-            title: "Proveedor",
-            field: "supplier",
-          },
-          {
-            title: "Descripción",
-            field: "description",
-          },
-        ]}
-        api={Api.products}
-      />
-    )
+    <ProTable<App.Entities.Products.Product>
+      loadingInputs={loading}
+      resource="products"
+      validationScheme={(yup) => {
+        return {
+          name: yup.string().required("El nombre es requerido"),
+          supplier_id: yup.number().required("El proveedor es requerido"),
+          price: yup.number().required("El precio es requerido"),
+          description: yup.string().required("La descripción es requerida"),
+        };
+      }}
+      inputs={
+        loading
+          ? () => (
+              <>
+                <Text>Lo primero que ves</Text>
+              </>
+            )
+          : RenderInputs
+      }
+      title="Productos"
+      columns={[
+        {
+          title: "Nombre",
+          field: "name",
+        },
+        {
+          title: "Precio",
+          field: "price",
+        },
+        {
+          title: "Proveedor",
+          field: "supplier",
+        },
+        {
+          title: "Descripción",
+          field: "description",
+        },
+      ]}
+      api={Api.products}
+    />
   );
 };
 

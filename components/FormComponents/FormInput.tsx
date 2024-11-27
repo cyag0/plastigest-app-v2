@@ -14,8 +14,6 @@ export default function FormInput({
   name,
   ...props
 }: FormInputProps) {
-  console.log(props);
-
   const config = {
     ...props,
     onChangeText: formProps.handleChange(name),

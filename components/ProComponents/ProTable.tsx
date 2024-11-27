@@ -1,15 +1,21 @@
-import { View, StyleSheet, TouchableOpacity, TextInput } from "react-native";
-import React, { useEffect, useRef, useState } from "react";
-import { Button, DataTable, IconButton, Text } from "react-native-paper";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import {
+  Button,
+  DataTable,
+  IconButton,
+  Text,
+  TextInput,
+} from "react-native-paper";
 import { Colors } from "@/constants/Colors";
 import { FontAwesome } from "@expo/vector-icons";
 import ModalFormComponent, { ModalFormRef } from "../modals/ModalForm";
 import Spin from "../Spin";
-import { useRouter } from "expo-router";
+import { useFocusEffect, usePathname, useRouter } from "expo-router";
 import { CrudType } from "@/services/crud";
 import { FormikProps } from "formik";
 import * as yup from "yup";
+import { useMenuContext } from "@/context/MenuContext";
 
 /**
  * Props para el componente ProTable.
@@ -45,6 +51,11 @@ interface ProTableProps<T> {
      * La alineación del contenido en la columna (opcional).
      */
     align?: "flex-start" | "center" | "flex-end";
+
+    /**
+     * El ancho mínimo de la columna (opcional).
+     */
+    minWidth?: number;
   }[];
 
   /**
@@ -90,6 +101,17 @@ interface ProTableProps<T> {
   afterAction?: (item: T) => boolean;
 
   validationScheme?: (Yup: typeof import("yup")) => any;
+
+  /**
+   * El recurso que se está manejando en la tabla (opcional).
+   * Se utiliza para resaltar el recurso en el menú lateral.
+   * @example "actividades"
+   *
+   * @type {string}
+   */
+  resource?: App.Entities.Roles.ResourceType;
+
+  loadingInputs?: boolean;
 }
 
 /**
@@ -124,7 +146,7 @@ export type MetaProps = {
   per_page: number;
 };
 
-function ProTable<T>({
+function Table<T>({
   api,
   columns,
   title,
@@ -134,24 +156,26 @@ function ProTable<T>({
   beforeAction = undefined,
   afterAction = undefined,
   validationScheme = () => ({}),
+  resource,
+  loadingInputs,
 }: ProTableProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [actions, setActions] = useState<ActionProp[]>([
     {
       title: "Editar",
-      icon: "edit",
-      onPress: (id: string) => {
-        handleEdit(id);
+      icon: "pencil",
+      onPress: async (id: string) => {
+        await handleEdit(id);
       },
     },
     {
       title: "Ver",
-      icon: "eye",
+      icon: "eye-outline",
       onPress: () => {},
     },
     {
       title: "Eliminar",
-      icon: "trash",
+      icon: "delete-outline",
       onPress: (id: string) => {
         handleDelete(id);
       },
@@ -292,23 +316,24 @@ function ProTable<T>({
 
   return (
     <Spin loading={loading} styles={styles.container}>
-      <ModalFormComponent ref={modalRef} />
+      {!loadingInputs && <ModalFormComponent ref={modalRef} />}
+
       <View style={[styles.card]}>
         <View
           style={{
             flexDirection: "row",
             alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 4,
+            marginBottom: 0,
           }}
         >
           <IconButton
             style={{ margin: 0, padding: 0 }}
             icon="arrow-left"
+            iconColor={Colors.primary[700]}
             onPress={() => {
-              if (router.canGoBack()) {
-                router.back();
-              }
+              router.replace({
+                pathname: "/(actividades)/(dashboard)",
+              });
             }}
           />
           <Text variant="titleMedium" style={styles.title}>
@@ -316,127 +341,160 @@ function ProTable<T>({
           </Text>
         </View>
         <View style={styles.filters}>
-          <View style={{ flexDirection: "row", flex: 0.3, gap: 4 }}>
+          <View style={{ flexDirection: "row", gap: 4 }}>
             <TextInput
               placeholder="Buscar"
               value={search}
               onChangeText={(e) => setSearch(e)}
-              style={styles.textInput}
+              style={{
+                height: 40,
+                flex: 1,
+              }}
+              left={
+                <TextInput.Icon
+                  onPress={() => {
+                    reloadTable();
+                  }}
+                  icon="magnify"
+                  color={Colors.primary[500]}
+                />
+              }
             />
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: Colors.primary[600] }]}
-            >
-              <FontAwesome name="search" size={16} color={"#fff"} />
-            </TouchableOpacity>
           </View>
-          <View style={{ flexDirection: "row", gap: 4 }}>
-            <TouchableOpacity
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 4,
+              alignItems: "center",
+            }}
+          >
+            <IconButton
+              mode="contained"
+              icon="refresh"
               onPress={() => reloadTable()}
-              style={styles.button}
+            />
+            <Button
+              style={{ padding: 0, borderRadius: 8, height: 40, flex: 1 }}
+              mode="text"
+              onPress={() => {}}
+              icon={"filter-menu"}
             >
-              <FontAwesome
-                name="repeat"
-                size={16}
-                color={Colors.primary[600]}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.button}>
-              <FontAwesome
-                name="filter"
-                size={16}
-                color={Colors.primary[600]}
-              />
-              <Text style={{ color: Colors.primary[600] }}>Filtros</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
+              Filtros
+            </Button>
+            <Button
+              icon={"plus"}
+              style={{
+                padding: 0,
+                borderRadius: 8,
+                height: 40,
+              }}
+              mode="contained"
               onPress={handleCreate}
-              style={[styles.button, { backgroundColor: Colors.primary[600] }]}
+              textColor="#fff"
             >
-              <FontAwesome name="plus" size={16} color={"#fff"} />
-              <Text style={{ color: "#fff" }}>Crear</Text>
-            </TouchableOpacity>
+              Crear
+            </Button>
           </View>
         </View>
       </View>
-      <View style={[styles.card, { flex: 1 }]}>
-        <DataTable style={{ flex: 1 }}>
-          <DataTable.Header>
-            {columns.map((column) => (
-              <DataTable.Title style={{}} key={column.field}>
-                <Text variant="titleMedium">{column.title}</Text>
-              </DataTable.Title>
-            ))}
-
-            <DataTable.Title
-              style={{
-                flexDirection: "row",
-                gap: 4,
-                justifyContent: "center",
-              }}
-            >
-              <Text variant="titleMedium">Acciones</Text>
-            </DataTable.Title>
-          </DataTable.Header>
-
-          <View style={{ flex: 1 }}>
-            {items.map((item) => (
-              <DataTable.Row key={item.id}>
+      {loadingInputs ? (
+        <View
+          style={{ height: 200, width: 200, backgroundColor: "red" }}
+        ></View>
+      ) : (
+        <View style={[styles.card, { flex: 1 }]}>
+          <ScrollView
+            horizontal
+            contentContainerStyle={[{ flexDirection: "row", flex: 1 }]}
+          >
+            <DataTable style={{ flex: 1, height: "100%" }}>
+              <DataTable.Header>
                 {columns.map((column) => (
-                  <DataTable.Cell
-                    numeric={column.type === "numeric"}
+                  <DataTable.Title
+                    style={{ minWidth: column.minWidth || 150 }}
                     key={column.field}
-                    style={{
-                      justifyContent: column.align
-                        ? column.align
-                        : "flex-start",
-                    }}
                   >
-                    {item[column.field]}
-                  </DataTable.Cell>
+                    <Text variant="titleMedium">{column.title}</Text>
+                  </DataTable.Title>
                 ))}
 
-                <DataTable.Cell>
-                  <View
-                    style={{
-                      flex: 1,
-                      flexDirection: "row",
-                      gap: 8,
-                      justifyContent: "center",
-                    }}
-                  >
-                    {actions.map((action) => (
-                      <TouchableOpacity
-                        key={action.title}
-                        onPress={() => {
-                          action.onPress(item.id);
+                <DataTable.Title
+                  style={{
+                    flexDirection: "row",
+                    gap: 4,
+                    justifyContent: "center",
+                    minWidth: 200,
+                  }}
+                >
+                  <Text variant="titleMedium">Acciones</Text>
+                </DataTable.Title>
+              </DataTable.Header>
+
+              <View style={{ flex: 1 }}>
+                {items.map((item) => (
+                  <DataTable.Row key={item.id}>
+                    {columns.map((column) => (
+                      <DataTable.Cell
+                        numeric={column.type === "numeric"}
+                        key={column.field}
+                        style={{
+                          justifyContent: column.align
+                            ? column.align
+                            : "flex-start",
+                          minWidth: column.minWidth || 150,
                         }}
-                        style={styles.actionButton}
                       >
-                        <FontAwesome
-                          // @ts-ignore
-                          name={action.icon}
-                          size={16}
-                          color={Colors.primary[600]}
-                        />
-                      </TouchableOpacity>
+                        {item[column.field]}
+                      </DataTable.Cell>
                     ))}
-                  </View>
-                </DataTable.Cell>
-              </DataTable.Row>
-            ))}
-          </View>
-          <DataTable.Pagination
-            page={page}
-            numberOfPages={meta.last_page}
-            onPageChange={(newPage) => {
-              setPage(newPage);
-              reloadTable(newPage);
-            }}
-            label={`${meta.from}-${meta.to} of ${meta.total}`}
-            selectPageDropdownLabel="Rows per page"
-          />
-        </DataTable>
-      </View>
+
+                    <DataTable.Cell
+                      style={{
+                        minWidth: 200,
+                      }}
+                    >
+                      <View
+                        style={{
+                          flex: 1,
+                          flexDirection: "row",
+                          justifyContent: "center",
+                          gap: 4,
+                        }}
+                      >
+                        {actions.map((action) => (
+                          <IconButton
+                            size={20}
+                            mode="contained-tonal"
+                            style={{ margin: 0 }}
+                            iconColor={Colors.primary[700]}
+                            icon={action.icon}
+                            onPress={() => {
+                              action.onPress(item.id);
+                            }}
+                          />
+                        ))}
+                      </View>
+                    </DataTable.Cell>
+                  </DataTable.Row>
+                ))}
+              </View>
+
+              <View style={{ alignItems: "center" }}>
+                <DataTable.Pagination
+                  page={page}
+                  numberOfPages={meta.last_page}
+                  onPageChange={(newPage) => {
+                    setPage(newPage);
+                    reloadTable(newPage);
+                  }}
+                  label={`${meta.from}-${meta.to} of ${meta.total}`}
+                  selectPageDropdownLabel="Rows per page"
+                />
+              </View>
+            </DataTable>
+          </ScrollView>
+        </View>
+      )}
     </Spin>
   );
 }
@@ -458,6 +516,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     alignItems: "center",
+    flexWrap: "wrap",
     justifyContent: "space-between",
   },
   card: {
@@ -493,5 +552,20 @@ const styles = StyleSheet.create({
     borderWidth: 0.3,
   },
 });
+
+function ProTable<T>(props: ProTableProps<T>) {
+  const menuProps = useMenuContext();
+  const location = usePathname();
+
+  useFocusEffect(
+    useCallback(() => {
+      if (props.resource) {
+        menuProps.setSelectedMenu(props.resource);
+      }
+    }, [props.resource])
+  );
+
+  return props.loadingInputs ? <View></View> : <Table {...props} />;
+}
 
 export default ProTable;
