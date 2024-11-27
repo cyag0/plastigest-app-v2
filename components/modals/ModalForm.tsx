@@ -77,13 +77,18 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
   }
 
   async function onClose() {
-    setOptions({});
-    setInitialValues({});
-    setIsVisible(false);
+    console.log("onClose");
     if (options.onClose) {
       options.onClose();
     }
+
     setIsVisible(false);
+
+    //setimeout para que se cierre el modal antes de limpiar los valores
+    setTimeout(() => {
+      setOptions({});
+      setInitialValues({});
+    }, 200);
   }
 
   return (
@@ -100,14 +105,26 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
         contentContainerStyle={[
           styles.modalContainer,
           {
-            width: "100%",
+            width: "95%",
+            padding: 4,
+            minWidth: 0,
+            maxWidth: isTablet ? options.width || 500 : "95%",
           },
         ]}
       >
         {loading ? (
           <ActivityIndicator animating={true} color="#fff" />
         ) : (
-          <ScrollView style={isTablet ? {} : { width: "95%" }}>
+          <ScrollView
+            style={[
+              styles.modalContent,
+              isTablet ? {} : { padding: 10 },
+              {
+                maxHeight: Dimensions.get("window").height - 100,
+                width: isTablet ? options.width || 500 : "100%",
+              },
+            ]}
+          >
             <ModalContent
               setLoading={setLoading}
               initialValues={initialValues}
@@ -182,12 +199,7 @@ function ModalContent({
   const ValidationScheme = Yup.object().shape(handleValidationScheme());
 
   return (
-    <View
-      style={[
-        styles.modalContent,
-        { width: isTablet ? options.width || 500 : "100%" },
-      ]}
-    >
+    <View style={[{ width: isTablet ? options.width || 500 : "100%" }]}>
       {/* Header del modal */}
       <View style={styles.horizontalPadding}>
         {options.title && (

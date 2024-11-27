@@ -1,4 +1,4 @@
-import { StyleSheet, View } from "react-native";
+import { Image, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
@@ -16,8 +16,13 @@ const index = () => {
     (async () => {
       try {
         setLoading(true);
-        /* const [rolesReq, locationReq] = Promise.all([Api.roles.roles.index()]);
-        setRoles(res.data); */
+        const [rolesReq, locationReq] = await Promise.all([
+          Api.roles.roles.index(),
+          Api.locations.index(),
+        ]);
+
+        setRoles(rolesReq.data);
+        setLocations(locationReq.data);
       } catch (error) {
         console.log(error);
       } finally {
@@ -49,6 +54,22 @@ const index = () => {
       inputs={(props) => {
         return (
           <>
+            <View>
+              <View style={{ flexDirection: "row", justifyContent: "center" }}>
+                <Image
+                  style={{
+                    width: 150,
+                    height: 150,
+                    borderRadius: 150,
+                    backgroundColor: Colors.black[100],
+                  }}
+                  source={{
+                    uri: "https://www.kindpng.com/picc/m/78-785827_user-profile-avatar-login-account-profile-user-icon.png",
+                  }}
+                />
+              </View>
+            </View>
+
             <FormInput
               formProps={props}
               name="name"
@@ -70,23 +91,35 @@ const index = () => {
               placeholder={"ejemplo@gmail.com"}
             />
 
-            <FormInput
-              formProps={props}
-              name="password"
-              label={"Contraseña"}
-              placeholder={"********"}
-              secureTextEntry
-            />
-
-            <FormInput
-              formProps={props}
-              name="phone_number"
-              left={<TextInput.Affix text="+52 " />}
-              textContentType="telephoneNumber"
-              inputMode="numeric"
-              placeholder="1234567890"
-              label={"Numero de telefono"}
-            />
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 8,
+                width: "100%",
+                minWidth: 50,
+              }}
+            >
+              <View style={{ flex: 1 }}>
+                <FormInput
+                  formProps={props}
+                  name="password"
+                  label={"Contraseña"}
+                  placeholder={"********"}
+                  secureTextEntry
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <FormInput
+                  formProps={props}
+                  name="phone_number"
+                  left={<TextInput.Affix text="+52 " />}
+                  textContentType="telephoneNumber"
+                  inputMode="numeric"
+                  placeholder="1234567890"
+                  label={"Numero de telefono"}
+                />
+              </View>
+            </View>
 
             <FormInput
               formProps={props}
@@ -105,6 +138,19 @@ const index = () => {
               items={roles.map((role) => ({
                 label: role.name,
                 value: role.id,
+              }))}
+            />
+
+            <Select
+              placeholder={{
+                label: "Selecciona una ubicacion",
+                value: null,
+              }}
+              FormProps={props}
+              name="location_id"
+              items={locations.map((location) => ({
+                label: location.name,
+                value: location.id,
               }))}
             />
           </>
