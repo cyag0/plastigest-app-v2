@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
-import { TextInput, Text } from "react-native-paper";
+import { TextInput, Text, Switch } from "react-native-paper";
 import FormInput from "@/components/FormComponents/FormInput";
 import { Colors } from "@/constants/Colors";
 import Select from "@/components/FormComponents/Select";
@@ -36,18 +36,55 @@ const index = () => {
       loadingInputs={loading}
       api={Api.usuarios}
       resource="users"
+      validationScheme={(yup) => {
+        return {
+          name: yup.string().required("El nombre es requerido"),
+          last_name: yup.string().required("El Apellido es requerido"),
+          password: yup.string().required("La contraseña es requerida"),
+          email: yup.string().required("El correo es requerido"),
+          phone_number: yup.string().required("El nombre es requerido"),
+          role_id: yup.number().required("El role es requerido"),
+          location_id:yup.string().required("La sucursal es requerida"),
+          is_active: yup.boolean().required("El estado es requerido")
+        };
+
+      }}
       columns={[
         {
           title: "Nombre",
           field: "nombre",
         },
+
+        {
+          title: "Apellido",
+          field: "last_name",
+        },
+        {
+          title: "Contraseña",
+          field: "password",
+        },
+        
         {
           title: "Email",
           field: "email",
         },
         {
           title: "Telefono",
-          field: "telefono",
+          field: "phone_number",
+        },
+        {
+          title: "ROLE_ID",
+          field: "role_id",
+        },
+
+        {
+          title:"Sucusal",
+          field: "location_id",
+        },
+        {
+          title:"Estado",
+          field:"is_active",
+
         },
       ]}
       title="Usuarios"
@@ -119,14 +156,7 @@ const index = () => {
                   label={"Numero de telefono"}
                 />
               </View>
-            </View>
-
-            <FormInput
-              formProps={props}
-              name="address"
-              label={"Direccion"}
-              placeholder={"Calle, numero, colonia..."}
-            />
+            </View> 
 
             <Select
               placeholder={{
@@ -153,6 +183,10 @@ const index = () => {
                 value: location.id,
               }))}
             />
+            <Switch value={props.values.status} onValueChange={(value)=>{
+              console.log(value);
+
+            }} />;
           </>
         );
       }}
