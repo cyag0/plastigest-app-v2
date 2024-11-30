@@ -66,7 +66,6 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
       //funcion para obtener los datos iniciales del formulario
       if (options.id) {
         const data = await options.getValues(options.id);
-        console.log("data", data);
         setInitialValues({ ...options.initialValues, ...data });
       }
     } catch (error) {
@@ -88,7 +87,7 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
     setTimeout(() => {
       setOptions({});
       setInitialValues({});
-    }, 200);
+    }, 50);
   }
 
   return (
@@ -253,7 +252,9 @@ function ModalContent({
                       return;
                     }
 
-                    props.handleSubmit();
+                    if (isValid) {
+                      props.handleSubmit();
+                    }
                   }}
                   textColor="white"
                 >

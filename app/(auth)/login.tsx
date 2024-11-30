@@ -1,27 +1,28 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
-  Text,
-  TextInput,
   TouchableOpacity,
   StyleSheet,
   Animated,
   Dimensions,
-  KeyboardAvoidingView,
-  Platform,
+  View,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { AntDesign } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
-import { Button } from "react-native-paper";
+import { Button, Icon, Snackbar, Text, TextInput } from "react-native-paper";
+import { Colors } from "@/constants/Colors";
+import { Formik } from "formik";
+import * as Yup from "yup";
+import FormInput from "@/components/FormComponents/FormInput";
+import Spin from "@/components/Spin";
 
 const { width } = Dimensions.get("window");
 
 export default function LoginScreen() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [animation] = useState(new Animated.Value(0));
   const [loading, setLoading] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const [error, setError] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
 
   const { login } = useAuthContext();
 
@@ -33,13 +34,24 @@ export default function LoginScreen() {
     }).start();
   }, []);
 
-  async function handleLogin() {
+  const toggleSnackbar = () => setVisible(!visible);
+
+  async function handleLogin(data: { email: string; password: string }) {
     try {
       setLoading(true);
-      console.log("login", email, password);
-      await login({ email, password });
+      console.log(data);
+      const res = await login(data);
+
+      console.log(res);
+
+      if (res?.data?.error) {
+        setError("El email o la contraseña son incorrectos");
+        setVisible(true);
+      }
     } catch (error) {
       console.log(error);
+      setError("Hubo un problema con el inicio de sesión. Inténtalo de nuevo.");
+      setVisible(true);
     } finally {
       setLoading(false);
     }
@@ -52,65 +64,121 @@ export default function LoginScreen() {
 
   return (
     <LinearGradient
-      colors={["#4c669f", "#3b5998", "#192f6a"]}
-      style={styles.gradient}
+      colors={[Colors.primary[500], "#CD1990"]}
+      style={[styles.gradient, styles.container]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
+      <Snackbar
+        visible={visible}
+        style={{ backgroundColor: Colors.red[100] }}
+        onDismiss={toggleSnackbar}
+        duration={3000}
+        action={{
+          label: (
+            <View style={{ alignItems: "center" }}>
+              <Icon source={"close"} size={20} color={Colors.red[500]} />
+            </View>
+          ),
+          onPress: () => setVisible(false),
+        }}
       >
-        <Animated.View
-          style={[styles.loginContainer, { transform: [{ translateY }] }]}
+        <Text style={{ color: Colors.red[500] }}>{error}</Text>
+      </Snackbar>
+      <Animated.View
+        style={[
+          styles.loginContainer,
+          { transform: [{ translateY }], minHeight: 250 },
+        ]}
+      >
+        <Spin
+          loading={loading}
+          styles={{
+            width: "100%",
+            borderRadius: 20,
+            padding: 20,
+          }}
         >
-          <Text style={styles.title}>Bienvenido</Text>
-          <View style={styles.inputContainer}>
-            <AntDesign
-              name="mail"
-              size={20}
-              color="#666"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Correo electrónico"
-              placeholderTextColor="#666"
-              onChangeText={setEmail}
-              value={email}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
+          <View style={{ width: "100%", maxWidth: 500, gap: 8 }}>
+            <Text variant="titleLarge" style={styles.title}>
+              Bienvenido
+            </Text>
+            <Formik
+              initialValues={{
+                email: "",
+                password: "",
+              }}
+              validationSchema={Yup.object().shape({
+                email: Yup.string()
+                  .email("El email no tiene un formato válido")
+                  .required("El email es requerido"),
+                password: Yup.string().required("La contraseña es requerida"),
+              })}
+              onSubmit={handleLogin}
+            >
+              {(props) => (
+                <>
+                  <FormInput
+                    style={styles.input}
+                    left={
+                      <TextInput.Icon
+                        color={
+                          props.errors.email && props.touched.email
+                            ? Colors.red[500]
+                            : Colors.primary[400]
+                        }
+                        icon={"email"}
+                      />
+                    }
+                    name="email"
+                    placeholder="Ejemplo@gmail.com"
+                    label="Email"
+                    formProps={props}
+                  />
+                  <FormInput
+                    style={styles.input}
+                    left={
+                      <TextInput.Icon
+                        color={
+                          props.errors.password && props.touched.password
+                            ? Colors.red[500]
+                            : Colors.primary[400]
+                        }
+                        icon={"lock"}
+                      />
+                    }
+                    right={
+                      <TextInput.Icon
+                        icon={passwordVisible ? "eye" : "eye-off"}
+                        onPress={() => setPasswordVisible(!passwordVisible)}
+                      />
+                    }
+                    name="password"
+                    placeholder="********"
+                    label="Contraseña"
+                    secureTextEntry={!passwordVisible}
+                    formProps={props}
+                  />
+                  <Button
+                    loading={loading}
+                    mode="contained"
+                    style={styles.button}
+                    onPress={props.handleSubmit}
+                  >
+                    <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
+                  </Button>
+                </>
+              )}
+            </Formik>
           </View>
-          <View style={styles.inputContainer}>
-            <AntDesign
-              name="lock"
-              size={20}
-              color="#666"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Contraseña"
-              placeholderTextColor="#666"
-              onChangeText={setPassword}
-              value={password}
-              secureTextEntry
-            />
-          </View>
-          <Button
-            loading={loading}
-            style={styles.loginButton}
-            onPress={handleLogin}
-          >
-            <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-          </Button>
 
           <TouchableOpacity style={styles.forgotPassword}>
             <Text style={styles.forgotPasswordText}>
               ¿Olvidaste tu contraseña?
             </Text>
           </TouchableOpacity>
-        </Animated.View>
-      </KeyboardAvoidingView>
+        </Spin>
+      </Animated.View>
     </LinearGradient>
   );
 }
@@ -125,11 +193,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loginContainer: {
-    width: width * 0.9,
-    maxWidth: 600,
+    width: "95%",
+    maxWidth: 500,
     backgroundColor: "rgba(255, 255, 255, 0.9)",
     borderRadius: 20,
-    padding: 20,
+    overflow: "hidden",
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -138,34 +206,21 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   title: {
-    fontSize: 28,
+    textAlign: "center",
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f2f2f2",
-    borderRadius: 10,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  inputIcon: {
-    marginRight: 10,
+    color: Colors.primary[800],
   },
   input: {
-    flex: 1,
-    height: 50,
-    color: "#333",
-  },
-  loginButton: {
-    backgroundColor: "#4c669f",
-    borderRadius: 10,
-    padding: 4,
     width: "100%",
-    alignItems: "center",
-    marginTop: 10,
+    marginTop: 8,
+    borderColor: Colors.black[300],
+    borderWidth: 1,
+    borderRadius: 10,
+  },
+  button: {
+    width: "100%",
+    borderRadius: 10,
+    marginTop: 8,
   },
   loginButtonText: {
     color: "#fff",
@@ -178,16 +233,5 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     color: "#4c669f",
     fontSize: 14,
-  },
-  socialLogin: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: 20,
-  },
-  socialButton: {
-    backgroundColor: "#4c669f",
-    borderRadius: 20,
-    padding: 10,
-    marginHorizontal: 10,
   },
 });

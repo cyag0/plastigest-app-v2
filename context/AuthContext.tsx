@@ -1,56 +1,83 @@
+import { createContext, useContext, useEffect, useState } from "react";
 import clientAxios from "@/utils/axios";
-import React, { createContext, useEffect } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-interface AuthContextType {
+interface AuthContextProps {
+  login: (data: { email: string; password: string }) => void;
   user: App.Entities.User | null;
-  login: (data: App.Entities.User) => void;
+  setUser: React.Dispatch<React.SetStateAction<App.Entities.User | null>>;
   logout: () => void;
-  authLoading: boolean;
 }
 
-//create a context
-const AuthContext = createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextProps | null>(null);
 
 export default function AuthContextProvider({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [user, setUser] = React.useState<App.Entities.User | null>({
-    id: 1,
-    name: "John Doe",
-    email: "cyag.cesar@gmail.com",
-    password: "1234",
-  });
-  const [authLoading, setAuthLoading] = React.useState<boolean>(true);
+  const [user, setUser] = useState<App.Entities.User | null>(null);
 
-  async function login(data: App.Entities.User) {
-    try {
-      const user = await clientAxios.post("login", data);
-    } catch (error) {}
-  }
+  useEffect(() => {
+    (async () => {
+      try {
+        const token = await AsyncStorage.getItem("token");
+        if (token) {
+          clientAxios.defaults.headers["Authorization"] = `Bearer ${token}`;
+          const userReq = await clientAxios.get("user");
+          setUser(userReq.data);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    })();
+  }, []);
 
-  async function logout() {
+  async function login(data: { email: string; password: string }) {
     try {
-      await clientAxios.post("logout");
+      const userReq = await clientAxios.post("login", data);
+
+      console.log(userReq);
+
+      const user = userReq.data.user;
+      const token = userReq.data.token;
+
+      if (user && token) {
+        await AsyncStorage.setItem("token", token);
+        clientAxios.defaults.headers["Authorization"] = `Bearer ${token}`;
+        setUser(userReq.data.user);
+      }
+
+      return userReq;
     } catch (error) {
       console.log(error);
     }
   }
 
+  async function logout() {
+    try {
+      const response = await clientAxios.post("/logout");
+      console.log(response);
+      clientAxios.defaults.headers["Authorization"] = "";
+      await AsyncStorage.removeItem("token");
+      setUser(null);
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, authLoading }}>
+    <AuthContext.Provider value={{ login, user, setUser, logout }}>
       {children}
     </AuthContext.Provider>
   );
 }
 
-export function useAuthContext() {
-  const context = React.useContext(AuthContext);
+function useAuthContext() {
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error(
-      "useAuthContext must be used within an AuthContextProvider"
-    );
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }
+export { useAuthContext };

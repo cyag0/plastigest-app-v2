@@ -16,6 +16,7 @@ import { CrudType } from "@/services/crud";
 import { FormikProps } from "formik";
 import * as yup from "yup";
 import { useMenuContext } from "@/context/MenuContext";
+import Toaster, { ToasterRef } from "../Toaster";
 
 /**
  * Props para el componente ProTable.
@@ -56,6 +57,14 @@ interface ProTableProps<T> {
      * El ancho mínimo de la columna (opcional).
      */
     minWidth?: number;
+
+    /**
+     * Función que se ejecuta para renderizar el contenido de la celda (opcional).
+     * @param {any} field - El campo del elemento.
+     * @param {T} item - El elemento.
+     * @returns {React.ReactNode} Un nodo React que representa el contenido de la celda.
+     */
+    render?: (field: any, item: T) => React.ReactNode;
   }[];
 
   /**
@@ -199,6 +208,7 @@ function Table<T>({
   const [loading, setLoading] = useState<boolean>(false);
   const [numberOfItemsPerPageList] = React.useState([10]);
   const modalRef = useRef<ModalFormRef>(null);
+  const toasterRef = useRef<ToasterRef>(null);
 
   const router = useRouter();
 
@@ -277,6 +287,10 @@ function Table<T>({
         }
       }
 
+      toasterRef.current?.showToast({
+        type: "success",
+        message: "Operación exitosa",
+      });
       reloadTable();
       return true;
     } catch (error) {
@@ -326,19 +340,20 @@ function Table<T>({
             marginBottom: 0,
           }}
         >
-          <IconButton
+          <Button
             style={{ margin: 0, padding: 0 }}
-            icon="arrow-left"
-            iconColor={Colors.primary[700]}
             onPress={() => {
               router.replace({
                 pathname: "/(actividades)/(dashboard)",
               });
             }}
-          />
-          <Text variant="titleMedium" style={styles.title}>
-            {title}
-          </Text>
+            icon={"arrow-left"}
+            textColor={Colors.primary[700]}
+          >
+            <Text variant="titleMedium" style={styles.title}>
+              {title}
+            </Text>
+          </Button>
         </View>
         <View style={styles.filters}>
           <View style={{ flexDirection: "row", gap: 4 }}>
@@ -447,7 +462,9 @@ function Table<T>({
                           minWidth: column.minWidth || 150,
                         }}
                       >
-                        {item[column.field]}
+                        {column.render
+                          ? column.render(item[column.field], item)
+                          : item[column.field]}
                       </DataTable.Cell>
                     ))}
 
@@ -498,6 +515,8 @@ function Table<T>({
           </ScrollView>
         </View>
       )}
+
+      <Toaster ref={toasterRef} />
     </Spin>
   );
 }

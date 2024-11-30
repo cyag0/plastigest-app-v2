@@ -1,7 +1,13 @@
 import React, { useRef, useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Animated, Dimensions, StyleSheet, View } from "react-native";
+import {
+  Animated,
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Appbar,
@@ -16,6 +22,8 @@ import MenuContextContextProvider, {
 } from "@/context/MenuContext";
 import { Link } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { LinearGradient } from "expo-linear-gradient";
+import { useAuthContext } from "@/context/AuthContext";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
@@ -119,6 +127,7 @@ function _layout() {
 }
 
 function DrawerLayout() {
+  const authProps = useAuthContext();
   const [open, setOpen] = useState<boolean>(false);
   const animatedWidth = useRef(new Animated.Value(100)).current;
   const [isDrawerVisible, setDrawerVisible] = useState(false);
@@ -139,7 +148,10 @@ function DrawerLayout() {
   return (
     <SafeAreaView style={{ flex: 1 }}>
       {isTablet ? (
-        <View
+        <LinearGradient
+          colors={[Colors.primary[500], "#CD1990"]} //CD1990
+          start={{ x: 0, y: 0 }} // Esquina superior izquierda
+          end={{ x: 1, y: 1 }} // Esquina inferior derecha
           style={{
             flexDirection: "row",
             flex: 1,
@@ -151,6 +163,7 @@ function DrawerLayout() {
               width: animatedWidth,
               alignItems: !open ? "center" : "flex-end",
               padding: 16,
+              backgroundColor: "transparent",
             }}
           >
             <IconButton
@@ -166,25 +179,52 @@ function DrawerLayout() {
                   width: open ? "100%" : 80, // Ajusta el ancho según el estado
                   overflow: "hidden",
                   borderRadius: 16, // Un poco de suavidad en los bordes
+                  flex: 1,
+                  justifyContent: "space-between",
+                  gap: 8,
                 },
               ]}
             >
-              {dashboardItems.map((item, index) => (
-                <MenuButton
-                  key={item.id}
-                  item={item}
-                  selectedItem={menuProps.selectedMenu}
-                  setSelectedItem={menuProps.setSelectedMenu}
-                  index={index}
-                  open={open}
-                />
-              ))}
+              <ScrollView>
+                {dashboardItems.map((item, index) => (
+                  <MenuButton
+                    key={"menuitem-" + item.id}
+                    item={item}
+                    selectedItem={menuProps.selectedMenu}
+                    setSelectedItem={menuProps.setSelectedMenu}
+                    index={index}
+                    open={open}
+                  />
+                ))}
+              </ScrollView>
+              <View style={{ width: "100%", alignItems: "center" }}>
+                {open ? (
+                  <Button
+                    icon="logout"
+                    mode="text"
+                    textColor="#fff"
+                    onPress={() => {
+                      authProps.logout();
+                    }}
+                  >
+                    Cerrar Sesión
+                  </Button>
+                ) : (
+                  <IconButton
+                    icon="logout"
+                    mode="contained"
+                    onPress={() => {
+                      authProps.logout();
+                    }}
+                  />
+                )}
+              </View>
             </Animated.View>
           </Animated.View>
           <Animated.View
             style={{
               flex: 1,
-              backgroundColor: Colors.primary[400],
+              backgroundColor: "transparent",
               padding: 16,
               paddingLeft: 0,
             }}
@@ -199,7 +239,7 @@ function DrawerLayout() {
               <_layout />
             </View>
           </Animated.View>
-        </View>
+        </LinearGradient>
       ) : (
         <>
           <Appbar>

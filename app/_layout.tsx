@@ -84,9 +84,8 @@ function RootLayout() {
 const { width } = Dimensions.get("screen");
 
 export default function App() {
-  console.log(width);
   return (
-    <View style={{ flex: 1, flexDirection: "row", backgroundColor: "red" }}>
+    <View style={{ flex: 1, flexDirection: "row" }}>
       <AuthContextProvider>
         <SafeAreaView style={{ flexDirection: "row", flex: 1 }}>
           <RootLayout />
@@ -95,9 +94,3 @@ export default function App() {
     </View>
   );
 }
-
-/* <AuthContextProvider>
-        <SafeAreaView style={{ flexDirection: "row", flex: 1 }}>
-          <RootLayout />
-        </SafeAreaView>
-      </AuthContextProvider> */
