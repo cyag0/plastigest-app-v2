@@ -59,6 +59,12 @@ const index = () => {
           label={"Descripción"}
           placeholder={"Descripción del producto"}
         />
+         <FormInput
+          name="code"
+          formProps={props}
+          label={"Ingresa el codigo"}
+          placeholder={"Codigo del producto"}
+        />
         <Select
           placeholder={{
             label: "Selecciona un proveedor",
@@ -82,6 +88,7 @@ const index = () => {
           supplier_id: yup.number().required("El proveedor es requerido"),
           price: yup.number().required("El precio es requerido"),
           description: yup.string().required("La descripción es requerida"),
+          code: yup.string().required("El codigo es requerido"),
         };
       }}
       inputs={

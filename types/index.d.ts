@@ -67,7 +67,16 @@ namespace App {
         | "products"
         | "suppliers"
         | "roles"
-        | "locations";
+        | "locations"
+        | "packages";
+    }
+    interface Package {
+      id: number;
+      name: string;
+      product_id: number;
+      labels?: string;
+      code?: string;
+      quantity: number;
     }
   }
 }
