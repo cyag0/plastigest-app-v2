@@ -3,16 +3,18 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Button,
   DataTable,
+  Icon,
   IconButton,
   Text,
   TextInput,
+  TouchableRipple,
 } from "react-native-paper";
 import { Colors } from "@/constants/Colors";
 import { FontAwesome } from "@expo/vector-icons";
 import ModalFormComponent, { ModalFormRef } from "../modals/ModalForm";
 import Spin from "../Spin";
 import { useFocusEffect, usePathname, useRouter } from "expo-router";
-import { CrudType } from "@/services/crud";
+import { CrudType, IndexProps } from "@/services/crud";
 import { FormikProps } from "formik";
 import * as yup from "yup";
 import { useMenuContext } from "@/context/MenuContext";
@@ -57,6 +59,13 @@ interface ProTableProps<T> {
      * El ancho mínimo de la columna (opcional).
      */
     minWidth?: number;
+
+    /**
+     * sorter: nombre del campo por el cual se ordenará la tabla
+     */
+    sorter?: {
+      [key: string]: "asc" | "desc";
+    };
 
     /**
      * Función que se ejecuta para renderizar el contenido de la celda (opcional).
@@ -121,6 +130,10 @@ interface ProTableProps<T> {
   resource?: App.Entities.Roles.ResourceType;
 
   loadingInputs?: boolean;
+
+  indexParams?: IndexProps;
+
+  filtersInputs?: (props: FormikProps<any>) => React.ReactNode;
 }
 
 /**
@@ -167,6 +180,8 @@ function Table<T>({
   validationScheme = () => ({}),
   resource,
   loadingInputs,
+  filtersInputs = undefined,
+  indexParams: indexParamsProps,
 }: ProTableProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [actions, setActions] = useState<ActionProp[]>([
@@ -191,7 +206,25 @@ function Table<T>({
     },
   ]);
 
+  const initialSorterBy = columns.reduce((acc, column) => {
+    if (column.sorter) {
+      Object.entries(column.sorter).forEach(([key, value]) => {
+        acc[key] = value as "asc" | "desc"; // Aseguramos el tipo
+      });
+    }
+    return acc;
+  }, {} as { [key: string]: "asc" | "desc" });
+
   //filters
+  const [sorterBy, setSorterBy] = useState<{
+    [key: string]: "asc" | "desc" | undefined;
+  }>(initialSorterBy);
+  const [filters, setFilters] = useState<{ [key: string]: any }>(
+    indexParamsProps?.filters || {}
+  );
+  const [indexParams, setIndexParams] = useState<IndexProps | undefined>(
+    indexParamsProps
+  );
   const [search, setSearch] = useState<string>("");
   const [meta, setMeta] = useState<MetaProps>({
     total: 0,
@@ -218,6 +251,10 @@ function Table<T>({
     })();
   }, []);
 
+  useEffect(() => {
+    console.log("filters", filters);
+  }, [filters]);
+
   async function handleCreate() {
     modalRef.current?.open({
       content: inputs,
@@ -229,7 +266,6 @@ function Table<T>({
   }
 
   async function handleEdit(id: string) {
-    console.log("edit", id);
     modalRef.current?.open({
       content: inputs,
       title: "Editar",
@@ -301,23 +337,63 @@ function Table<T>({
     }
   }
 
-  async function reloadTable(newPage?: number) {
+  async function reloadTable(
+    newPage?: number,
+    options?: {
+      _sorterBy?: { [key: string]: "asc" | "desc" | undefined };
+      _filters?: { [key: string]: any };
+    }
+  ) {
     try {
       setLoading(true);
+      const thisSorterBy = options?._sorterBy || sorterBy;
+      const thisFilters = options?._filters || filters;
+      const indexParamsKeys = Object.keys(indexParams || {});
 
-      const params = {} as any;
-      params["page"] = newPage ? newPage + 1 : page;
-      params["items_per_page"] = itemsPerPage;
+      const params = {
+        query: {
+          page: newPage ? newPage + 1 : page,
+          items_per_page: itemsPerPage,
+        },
+      } as any;
 
       if (search.length > 3) {
-        params["search"] = search;
+        params["query"]["search"] = search;
       }
 
-      const data = await api.index({ query: params });
+      //agregamos los filtros adicionales
+      indexParamsKeys.forEach((key) => {
+        if (indexParams?.[key]) {
+          if (Object.keys(indexParams[key] || {}).length > 0) {
+            params[key] = indexParams[key];
+          }
+        }
+      });
 
-      console.log(data);
+      const paramsData = {
+        query: params["query"],
+      } as IndexProps;
+
+      if (thisFilters && Object.keys(thisFilters).length > 0) {
+        paramsData["filters"] = thisFilters;
+      }
+
+      if (thisSorterBy && Object.keys(thisSorterBy).length > 0) {
+        paramsData["sorter"] = thisSorterBy;
+      }
+
+      if (params["searchBy"]) {
+        paramsData["searchBy"] = params["searchBy"];
+      }
+
+      console.log("paramsData", paramsData);
+
+      const data = await api.index(paramsData);
+
       if (Array.isArray(data.data)) {
         setItems(data.data);
+      } else {
+        setItems([]);
       }
       setPage(data.meta.current_page - 1);
       setMeta(data.meta);
@@ -326,6 +402,26 @@ function Table<T>({
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleFilters() {
+    modalRef.current?.open({
+      content: filtersInputs,
+      title: "Filtros",
+      okText: "Aplicar",
+      initialValues: filters,
+      onOk: async (values: any, id?: number) => {
+        try {
+          setFilters({ ...indexParamsProps?.filters, ...values });
+          reloadTable(page, {
+            _filters: { ...indexParamsProps?.filters, ...values },
+          });
+          return true;
+        } catch (error) {
+          return false;
+        }
+      },
+    });
   }
 
   return (
@@ -394,7 +490,9 @@ function Table<T>({
             <Button
               style={{ padding: 0, borderRadius: 8, height: 40, flex: 1 }}
               mode="text"
-              onPress={() => {}}
+              onPress={() => {
+                handleFilters();
+              }}
               icon={"filter-menu"}
             >
               Filtros
@@ -428,12 +526,70 @@ function Table<T>({
             <DataTable style={{ flex: 1, height: "100%" }}>
               <DataTable.Header>
                 {columns.map((column) => (
-                  <DataTable.Title
-                    style={{ minWidth: column.minWidth || 150 }}
-                    key={column.field}
-                  >
-                    <Text variant="titleMedium">{column.title}</Text>
-                  </DataTable.Title>
+                  <TouchableRipple
+                    key={"header-column-" + column.field}
+                    style={{
+                      width: column.minWidth || 150,
+                      minWidth: column.minWidth || 150,
+                      flexDirection: "row",
+                      justifyContent: column.align || "flex-center",
+                      flex: 1,
+                    }}
+                    rippleColor={Colors.primary[100]}
+                    children={() => {
+                      const columnSorter = Object.keys(column.sorter || {})[0];
+                      const sortDirection = sorterBy[columnSorter] || undefined;
+
+                      return (
+                        <DataTable.Title
+                          style={{
+                            justifyContent: column.align || "flex-center",
+                            alignItems: "center",
+                          }}
+                          sortDirection={
+                            sortDirection
+                              ? sortDirection === "asc"
+                                ? "ascending"
+                                : "descending"
+                              : undefined
+                          }
+                          children={
+                            <>
+                              <Text variant="titleMedium">{column.title}</Text>
+                            </>
+                          }
+                          key={"header-column-" + column.field}
+                        />
+                      );
+                    }}
+                    onPress={
+                      column.sorter
+                        ? () => {
+                            if (column.sorter) {
+                              const columnSorter = Object.keys(
+                                column.sorter
+                              )[0];
+                              const newSorterdBy = { ...sorterBy };
+
+                              switch (sorterBy[columnSorter]) {
+                                case "asc":
+                                  newSorterdBy[columnSorter] = "desc";
+                                  break;
+                                case "desc":
+                                  newSorterdBy[columnSorter] = undefined;
+                                  break;
+                                default:
+                                  newSorterdBy[columnSorter] = "asc";
+                                  break;
+                              }
+
+                              reloadTable(page, newSorterdBy);
+                              setSorterBy(newSorterdBy);
+                            }
+                          }
+                        : undefined
+                    }
+                  />
                 ))}
 
                 <DataTable.Title
@@ -449,12 +605,12 @@ function Table<T>({
               </DataTable.Header>
 
               <View style={{ flex: 1 }}>
-                {items.map((item) => (
-                  <DataTable.Row key={item.id}>
+                {items.map((item, index) => (
+                  <DataTable.Row key={"header-" + item.id}>
                     {columns.map((column) => (
                       <DataTable.Cell
                         numeric={column.type === "numeric"}
-                        key={column.field}
+                        key={index + "content-" + column.field}
                         style={{
                           justifyContent: column.align
                             ? column.align

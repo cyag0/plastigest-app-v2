@@ -436,7 +436,7 @@ function Movements() {
             <>
               <TouchableRipple
                 onPress={() => {}}
-                key={"movement-" + index}
+                key={"movement-" + movement.id}
                 style={{
                   backgroundColor: "#fff",
                   borderRadius: 12,

@@ -1,7 +1,10 @@
 import { MetaProps } from "@/components/ProComponents/ProTable";
 import clientAxios from "@/utils/axios";
-interface IndexProps {
+export interface IndexProps {
   query?: any[];
+  filters?: { [key: string]: any };
+  sorter?: { [key: string]: any };
+  searchBy?: any[];
 }
 
 type IndexResponse<T> = { data: T[]; meta: MetaProps };
@@ -19,7 +22,7 @@ export default function Crud<T>(table: string) {
     index: async (props?: IndexProps) => {
       try {
         const response = await clientAxios.get(table, {
-          params: { ...props?.query },
+          params: props,
         });
         return response?.data;
       } catch (error) {

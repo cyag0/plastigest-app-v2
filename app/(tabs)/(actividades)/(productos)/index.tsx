@@ -84,6 +84,9 @@ const index = () => {
           description: yup.string().required("La descripción es requerida"),
         };
       }}
+      indexParams={{
+        searchBy: ["name", "description", "price"],
+      }}
       inputs={
         loading
           ? () => (
@@ -98,6 +101,9 @@ const index = () => {
         {
           title: "Nombre",
           field: "name",
+          sorter: {
+            name: "asc",
+          },
         },
         {
           title: "Precio",
@@ -110,8 +116,24 @@ const index = () => {
         {
           title: "Descripción",
           field: "description",
+          sorter: {
+            description: "asc",
+          },
         },
       ]}
+      filtersInputs={(props) => (
+        <>
+          <Select
+            placeholder={{
+              label: "Selecciona un proveedor",
+              value: null,
+            }}
+            items={itemsToSelect(proveedores)}
+            name="supplier_id"
+            FormProps={props}
+          />
+        </>
+      )}
       api={Api.products}
     />
   );

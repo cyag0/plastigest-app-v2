@@ -67,6 +67,10 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
       if (options.id) {
         const data = await options.getValues(options.id);
         setInitialValues({ ...options.initialValues, ...data });
+      } else {
+        if (options.initialValues) {
+          setInitialValues(options.initialValues);
+        }
       }
     } catch (error) {
       console.error(error);
