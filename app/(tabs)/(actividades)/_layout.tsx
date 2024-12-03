@@ -83,6 +83,15 @@ export const dashboardItems: App.Entities.Roles.Resource[] = [
     resource: "locations",
     category: "inventory",
   },
+  {
+    name: "Paquetes",
+    icon: "truck",
+    route: "(packages)",
+    description: "Administra los paquetes de la tienda",
+    id: 6,
+    resource: "packages",
+    category: "inventory",
+  },
 ];
 
 function _layout() {
