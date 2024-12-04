@@ -2,7 +2,7 @@ import { Image, StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import ProTable from "@/components/ProComponents/ProTable";
 import Api from "@/services";
-import { TextInput, Text, Switch } from "react-native-paper";
+import { TextInput, Text, Switch, Checkbox } from "react-native-paper";
 import FormInput from "@/components/FormComponents/FormInput";
 import { Colors } from "@/constants/Colors";
 import Select from "@/components/FormComponents/Select";
@@ -44,10 +44,9 @@ const index = () => {
           email: yup.string().required("El correo es requerido"),
           phone_number: yup.string().required("El nombre es requerido"),
           role_id: yup.number().required("El role es requerido"),
-          location_id:yup.string().required("La sucursal es requerida"),
-          is_active: yup.boolean().required("El estado es requerido")
+          location_id: yup.string().required("La sucursal es requerida"),
+          is_active: yup.boolean().required("El estado es requerido"),
         };
-
       }}
       columns={[
         {
@@ -63,7 +62,7 @@ const index = () => {
           title: "Contraseña",
           field: "password",
         },
-        
+
         {
           title: "Email",
           field: "email",
@@ -78,13 +77,12 @@ const index = () => {
         },
 
         {
-          title:"Sucusal",
+          title: "Sucusal",
           field: "location_id",
         },
         {
-          title:"Estado",
-          field:"is_active",
-
+          title: "Estado",
+          field: "is_active",
         },
       ]}
       title="Usuarios"
@@ -106,28 +104,24 @@ const index = () => {
                 />
               </View>
             </View>
-
             <FormInput
               formProps={props}
               name="name"
               label={"Nombre"}
               placeholder={"Alejandro, Noe, Enrique..."}
             />
-
             <FormInput
               formProps={props}
               name="last_name"
               label={"Apellidos"}
               placeholder={"Perez, Lopez, Hernandez..."}
             />
-
             <FormInput
               formProps={props}
               name="email"
               label={"Correo electronico"}
               placeholder={"ejemplo@gmail.com"}
             />
-
             <View
               style={{
                 flexDirection: "row",
@@ -156,8 +150,7 @@ const index = () => {
                   label={"Numero de telefono"}
                 />
               </View>
-            </View> 
-
+            </View>
             <Select
               placeholder={{
                 label: "Selecciona un rol",
@@ -170,7 +163,6 @@ const index = () => {
                 value: role.id,
               }))}
             />
-
             <Select
               placeholder={{
                 label: "Selecciona una ubicacion",
@@ -183,10 +175,31 @@ const index = () => {
                 value: location.id,
               }))}
             />
-            <Switch value={props.values.status} onValueChange={(value)=>{
-              console.log(value);
+            {locations.map((location) => (
+              <Checkbox.Item
+                label={location.name}
+                value={location.id}
+                onPress={() => {
+                  props.setFieldValue("locations", {
+                    ...props.values.locations,
+                    [location.id]: !props.values.locations?.[location.id],
+                  });
 
-            }} />;
+                  console.log(props.values.locations);
+                }}
+                status={
+                  props.values.locations?.[location.id]
+                    ? "checked"
+                    : "unchecked"
+                }
+              />
+            ))}
+            <Switch
+              value={props.values.status}
+              onValueChange={(value) => {
+                console.log(value);
+              }}
+            />
           </>
         );
       }}
