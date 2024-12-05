@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Stack, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import {
@@ -24,12 +24,13 @@ import { Link } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthContext } from "@/context/AuthContext";
+import Api from "@/services";
 
 const { width } = Dimensions.get("window");
 const isTablet = width >= 768;
 
 const BASE_URL = "(tabs)/(actividades)/";
-export const dashboardItems: App.Entities.Roles.Resource[] = [
+/* export const dashboardItems: App.Entities.Roles.Resource[] = [
   {
     name: "Dashboard",
     icon: "view-dashboard",
@@ -93,7 +94,7 @@ export const dashboardItems: App.Entities.Roles.Resource[] = [
     category: "inventory",
   },
 ];
-
+ */
 function _layout() {
   return (
     <Stack
@@ -142,7 +143,7 @@ function DrawerLayout() {
   const [isDrawerVisible, setDrawerVisible] = useState(false);
 
   const menuProps = useMenuContext();
-
+  const { dashboardItems } = menuProps;
   const navigator = useRouter();
 
   const toggleDrawer = () => {
@@ -207,6 +208,28 @@ function DrawerLayout() {
                 ))}
               </ScrollView>
               <View style={{ width: "100%", alignItems: "center" }}>
+                {open ? (
+                  <Button
+                    icon="account"
+                    mode="text"
+                    textColor="#fff"
+                    onPress={() => {
+                      authProps.setShowSelectLocation(true);
+                    }}
+                  >
+                    {authProps.locations?.find(
+                      (location) => location.id === authProps.selectedLocation
+                    )?.name || "Seleccionar Sucursal"}
+                  </Button>
+                ) : (
+                  <IconButton
+                    icon="account"
+                    mode="contained"
+                    onPress={() => {
+                      authProps.setShowSelectLocation(true);
+                    }}
+                  />
+                )}
                 {open ? (
                   <Button
                     icon="logout"

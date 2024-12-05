@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -10,10 +10,20 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { dashboardItems } from "../_layout";
 import Animated, { Layout, FadeInDown } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-import { Card, Icon, Text, TouchableRipple } from "react-native-paper";
+import {
+  Button,
+  Card,
+  Icon,
+  Modal,
+  Portal,
+  RadioButton,
+  Text,
+  TouchableRipple,
+} from "react-native-paper";
+import { useAuthContext } from "@/context/AuthContext";
+import { useMenuContext } from "@/context/MenuContext";
 
 const { width } = Dimensions.get("window");
 interface MovementProp {
@@ -211,6 +221,7 @@ const movements: MovementProp[] = [
 
 export default function DashboardScreen() {
   const navigator = useRouter();
+  const { dashboardItems } = useMenuContext();
 
   const isTablet = width >= 768;
 
@@ -349,6 +360,8 @@ export default function DashboardScreen() {
           </View>
         </View>
       </View>
+
+      <SelectLocation />
     </SafeAreaView>
   );
 }
@@ -411,6 +424,67 @@ function LastSevenDays() {
         }}
       ></View>
     </View>
+  );
+}
+
+function SelectLocation() {
+  const auth = useAuthContext();
+
+  useEffect(() => {
+    if (!auth.setSelectedLocation) {
+      auth.setShowSelectLocation(true);
+    }
+  }, [auth.setSelectedLocation]);
+
+  return (
+    <Portal
+      theme={{
+        colors: {
+          backdrop: "#00000099",
+        },
+      }}
+    >
+      <Modal
+        onDismiss={() => {}}
+        dismissable={false}
+        style={{
+          backgroundColor: "transparent",
+          padding: 16,
+          borderRadius: 12,
+        }}
+        contentContainerStyle={{
+          padding: 16,
+          borderRadius: 12,
+          backgroundColor: "#fff",
+          maxWidth: 500,
+          width: "95%",
+          alignSelf: "center",
+        }}
+        visible={auth.showSelectLocation}
+      >
+        <RadioButton.Group
+          onValueChange={(value) => {
+            auth.setSelectedLocation(parseInt(value));
+          }}
+          value={auth.selectedLocation?.toString() || ""}
+        >
+          {auth.locations.length > 0 &&
+            auth.locations.map((location) => (
+              <RadioButton.Item
+                label={location.name}
+                value={location.id.toString()}
+              />
+            ))}
+        </RadioButton.Group>
+
+        <Button
+          disabled={auth.selectedLocation === null}
+          onPress={() => auth.setShowSelectLocation(false)}
+        >
+          Confirmar
+        </Button>
+      </Modal>
+    </Portal>
   );
 }
 

@@ -22,7 +22,7 @@ export default function MenuContextContextProvider({
     App.Entities.Roles.Resource[]
   >([]);
 
-  /*   useEffect(() => {
+  useEffect(() => {
     (async () => {
       try {
         const data = await Api.roles.resources.index();
@@ -32,7 +32,7 @@ export default function MenuContextContextProvider({
         console.log(error);
       }
     })();
-  }, []); */
+  }, []);
 
   return (
     <MenuContext.Provider
