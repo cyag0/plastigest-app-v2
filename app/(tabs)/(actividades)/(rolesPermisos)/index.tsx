@@ -36,54 +36,69 @@ export default function index() {
   }
 
   return (
-    !loading && (
-      <ProTable<App.Entities.Roles.Role>
-        resource="roles"
-        api={Api.roles.roles}
-        columns={[
-          {
-            title: "Name",
-            field: "name",
-          },
-          {
-            title: "Descripcion",
-            field: "description",
-          },
-        ]}
-        title="Roles y permisos"
-        validationScheme={(yup) => {
-          return {
-            name: yup.string().required("El nombre es requerido"),
-            description: yup.string().required("La descripción es requerida"),
-          };
-        }}
-        inputs={(props) => {
-          return (
-            <>
-              <FormInput
-                label={"Nombre del rol"}
-                placeholder="Operador de almacen, Gerente..."
-                name="name"
-                formProps={props}
-              />
-              <FormInput
-                label={"Descripción del rol"}
-                placeholder="Se encarga de..."
-                name="description"
-                formProps={props}
-              />
-              <PermissionsTable permissions={permissions} props={props} />
-            </>
-          );
-        }}
-      />
-    )
+    <ProTable<App.Entities.Roles.Role>
+      loadingInputs={loading}
+      resource="roles"
+      api={Api.roles.roles}
+      columns={[
+        {
+          title: "Name",
+          field: "name",
+        },
+        {
+          title: "Descripcion",
+          field: "description",
+        },
+      ]}
+      title="Roles y permisos"
+      validationScheme={(yup) => {
+        return {
+          name: yup.string().required("El nombre es requerido"),
+          description: yup.string().required("La descripción es requerida"),
+        };
+      }}
+      inputs={(props) => {
+        return <Form permissions={permissions} formProps={props} />;
+      }}
+    />
   );
 }
 
 interface PermissionsTableProps {
   permissions: App.Entities.Roles.Resource[];
   props: FormikProps<any>;
+}
+
+function Form(props: {
+  permissions: App.Entities.Roles.Resource[];
+  formProps: FormikProps<any>;
+}) {
+  const [permissions, setPermissions] = useState<App.Entities.Roles.Resource[]>(
+    props.permissions || []
+  );
+
+  useEffect(() => {
+    console.log(props.permissions);
+    setPermissions(props.permissions);
+  }, [props.permissions]);
+
+  return (
+    <>
+      <FormInput
+        label={"Nombre del rol"}
+        placeholder="Operador de almacen, Gerente..."
+        name="name"
+        formProps={props.formProps}
+      />
+      <FormInput
+        label={"Descripción del rol"}
+        placeholder="Se encarga de..."
+        name="description"
+        formProps={props.formProps}
+      />
+      <PermissionsTable permissions={permissions} props={props.formProps} />
+    </>
+  );
 }
 
 function PermissionsTable({ permissions = [], props }: PermissionsTableProps) {
@@ -145,7 +160,7 @@ function PermissionsTable({ permissions = [], props }: PermissionsTableProps) {
                     }.create`,
                     !props?.values?.permissions?.[
                       String(permission.id) + "_" + permission.resource
-                    ]?.create
+                    ]?.create || false
                   );
                 }}
                 status={
@@ -168,7 +183,7 @@ function PermissionsTable({ permissions = [], props }: PermissionsTableProps) {
                   const value =
                     !props?.values?.permissions?.[
                       String(permission.id) + "_" + permission.resource
-                    ]?.edit;
+                    ]?.edit || false;
                   props.setFieldValue(
                     `permissions.${String(permission.id)}_${
                       permission.resource
@@ -195,8 +210,9 @@ function PermissionsTable({ permissions = [], props }: PermissionsTableProps) {
               <Checkbox
                 onPress={() => {
                   const value =
-                    !props?.values?.permissions?.[String(permission.id)]
-                      ?.delete;
+                    !props?.values?.permissions?.[
+                      String(permission.id) + "_" + permission.resource
+                    ]?.delete || false;
                   props.setFieldValue(
                     `permissions.${String(permission.id)}_${
                       permission.resource

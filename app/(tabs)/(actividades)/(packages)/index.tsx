@@ -30,6 +30,7 @@ const index = () => {
     <ProTable
       loadingInputs={loading}
       title="Paquetes"
+      resource="packages"
       validationScheme={(yup) => {
         return {
           name: yup.string().required("Nombre requerido"),
@@ -40,10 +41,8 @@ const index = () => {
       }}
       api={Api.packages}
       columns={[
-        { title: "ID", field: "id" },
         { title: "Nombre", field: "name" },
         { title: "Nombre del producto", field: "product" },
-
         { title: "Codigo", field: "code" },
         { title: "Cantidad", field: "quantity" },
       ]}

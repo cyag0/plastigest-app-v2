@@ -1,6 +1,11 @@
 import { Colors } from "@/constants/Colors";
 import { Formik, FormikProps } from "formik";
-import React, { useImperativeHandle, useState, forwardRef } from "react";
+import React, {
+  useImperativeHandle,
+  useState,
+  forwardRef,
+  useEffect,
+} from "react";
 import { View, StyleSheet, ScrollView, Dimensions } from "react-native";
 import {
   ActivityIndicator,
@@ -11,6 +16,7 @@ import {
   Button,
 } from "react-native-paper";
 import * as Yup from "yup";
+import Spin from "../Spin";
 
 export type ModalFormRef = {
   close: () => void;
@@ -59,13 +65,13 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
   async function onOpen(options: ModalFormProps) {
     try {
       setLoading(true);
-
       if (options.onOpen) {
         await options.onOpen();
       }
       //funcion para obtener los datos iniciales del formulario
       if (options.id) {
         const data = await options.getValues(options.id);
+        console.log("aaa", { ...options.initialValues, ...data });
         setInitialValues({ ...options.initialValues, ...data });
       } else {
         if (options.initialValues) {
@@ -115,9 +121,7 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
           },
         ]}
       >
-        {loading ? (
-          <ActivityIndicator animating={true} color="#fff" />
-        ) : (
+        <Spin loading={loading}>
           <ScrollView
             style={[
               styles.modalContent,
@@ -134,9 +138,10 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
               setIsVisible={setIsVisible}
               options={options}
               onClose={onClose}
+              loading={loading}
             />
           </ScrollView>
-        )}
+        </Spin>
       </Modal>
     </Portal>
   );
@@ -148,12 +153,14 @@ function ModalContent({
   initialValues,
   onClose,
   setLoading,
+  loading,
 }: {
   options: ModalFormProps;
   setIsVisible: any;
   initialValues: any;
   onClose: any;
   setLoading: any;
+  loading: boolean;
 }) {
   async function onOk(values: any) {
     try {
@@ -214,61 +221,63 @@ function ModalContent({
       <Divider style={styles.divider} />
 
       {/* Contenido del modal */}
-      <Formik
-        validationSchema={ValidationScheme}
-        initialValues={initialValues}
-        onSubmit={onOk}
-      >
-        {(props) => {
-          return (
-            <View style={[styles.horizontalPadding]}>
-              {/* Inputs del modal o contenido */}
-              <View style={{ gap: 10 }}>
-                {options.content && options.content(props)}
+      {!loading && (
+        <Formik
+          validationSchema={ValidationScheme}
+          initialValues={initialValues}
+          onSubmit={onOk}
+        >
+          {(props) => {
+            return (
+              <View style={[styles.horizontalPadding]}>
+                {/* Inputs del modal o contenido */}
+                <View style={{ gap: 10 }}>
+                  {options.content && options.content(props)}
+                </View>
+
+                {/* Footer del modal */}
+                <Divider style={styles.divider} />
+                <View style={[styles.footer]}>
+                  {options.footer && options.footer}
+                  <Button
+                    style={[styles.buttons]}
+                    mode="outlined"
+                    onPress={onClose}
+                  >
+                    {options.cancelText || "Cancelar"}
+                  </Button>
+                  <Button
+                    style={[styles.buttons]}
+                    mode="contained"
+                    contentStyle={{ padding: 0 }}
+                    onPress={async () => {
+                      const isValid = await props.validateForm();
+                      const names = Object.keys(props.errors);
+
+                      if (names.length > 0) {
+                        props.setTouched(
+                          names.reduce((acc, name) => {
+                            acc[name] = true;
+                            return acc;
+                          }, {})
+                        );
+                        return;
+                      }
+
+                      if (isValid) {
+                        props.handleSubmit();
+                      }
+                    }}
+                    textColor="white"
+                  >
+                    {options.okText || "OK"}
+                  </Button>
+                </View>
               </View>
-
-              {/* Footer del modal */}
-              <Divider style={styles.divider} />
-              <View style={[styles.footer]}>
-                {options.footer && options.footer}
-                <Button
-                  style={[styles.buttons]}
-                  mode="outlined"
-                  onPress={onClose}
-                >
-                  {options.cancelText || "Cancelar"}
-                </Button>
-                <Button
-                  style={[styles.buttons]}
-                  mode="contained"
-                  contentStyle={{ padding: 0 }}
-                  onPress={async () => {
-                    const isValid = await props.validateForm();
-                    const names = Object.keys(props.errors);
-
-                    if (names.length > 0) {
-                      props.setTouched(
-                        names.reduce((acc, name) => {
-                          acc[name] = true;
-                          return acc;
-                        }, {})
-                      );
-                      return;
-                    }
-
-                    if (isValid) {
-                      props.handleSubmit();
-                    }
-                  }}
-                  textColor="white"
-                >
-                  {options.okText || "OK"}
-                </Button>
-              </View>
-            </View>
-          );
-        }}
-      </Formik>
+            );
+          }}
+        </Formik>
+      )}
     </View>
   );
 }

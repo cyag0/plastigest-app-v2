@@ -222,6 +222,7 @@ const movements: MovementProp[] = [
 export default function DashboardScreen() {
   const navigator = useRouter();
   const { dashboardItems } = useMenuContext();
+  const auth = useAuthContext();
 
   const isTablet = width >= 768;
 
@@ -246,7 +247,7 @@ export default function DashboardScreen() {
         <View style={{ flex: 0.7, gap: 10 }}>
           <Card
             style={{
-              flex: 0.65,
+              flex: 1,
               backgroundColor: "#fff",
               borderRadius: 12,
             }}
@@ -299,9 +300,6 @@ export default function DashboardScreen() {
               </ScrollView>
             </Card.Content>
           </Card>
-          <View
-            style={{ flex: 0.35, backgroundColor: "#fff", borderRadius: 12 }}
-          ></View>
         </View>
 
         <View
@@ -361,7 +359,7 @@ export default function DashboardScreen() {
         </View>
       </View>
 
-      <SelectLocation />
+      {/* <SelectLocation /> */}
     </SafeAreaView>
   );
 }
@@ -427,14 +425,17 @@ function LastSevenDays() {
   );
 }
 
-function SelectLocation() {
+function SelectLocation(prevValue: any) {
   const auth = useAuthContext();
+  const [radioValue, setRadioValue] = React.useState(
+    auth.selectedLocation?.id?.toString() || ""
+  );
+  const router = useRouter();
+  const [visible, setVisible] = React.useState(true);
 
   useEffect(() => {
-    if (!auth.setSelectedLocation) {
-      auth.setShowSelectLocation(true);
-    }
-  }, [auth.setSelectedLocation]);
+    console.log("prevValue", prevValue);
+  }, []);
 
   return (
     <Portal
@@ -445,8 +446,7 @@ function SelectLocation() {
       }}
     >
       <Modal
-        onDismiss={() => {}}
-        dismissable={false}
+        onDismiss={() => setVisible(false)}
         style={{
           backgroundColor: "transparent",
           padding: 16,
@@ -460,13 +460,13 @@ function SelectLocation() {
           width: "95%",
           alignSelf: "center",
         }}
-        visible={auth.showSelectLocation}
+        visible={visible}
       >
         <RadioButton.Group
           onValueChange={(value) => {
-            auth.setSelectedLocation(parseInt(value));
+            setRadioValue(value);
           }}
-          value={auth.selectedLocation?.toString() || ""}
+          value={radioValue || ""}
         >
           {auth.locations.length > 0 &&
             auth.locations.map((location) => (
@@ -478,8 +478,19 @@ function SelectLocation() {
         </RadioButton.Group>
 
         <Button
-          disabled={auth.selectedLocation === null}
-          onPress={() => auth.setShowSelectLocation(false)}
+          disabled={auth.selectedLocation?.id === null}
+          onPress={() => {
+            if (radioValue !== auth.selectedLocation?.toString()) {
+              router.replace({
+                pathname: "/(actividades)/(dashboard)",
+              });
+              auth.setSelectedLocation(
+                auth.locations.find((l) => l.id.toString() === radioValue) ||
+                  null
+              );
+            }
+            setVisible(false);
+          }}
         >
           Confirmar
         </Button>
@@ -618,6 +629,7 @@ function Movements() {
               </TouchableRipple>
 
               <View
+                key={"movement-divider-" + movement.id}
                 style={{
                   height: 1,
                   backgroundColor: Colors.black[100],

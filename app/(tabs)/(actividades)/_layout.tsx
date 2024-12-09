@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Stack, useRouter } from "expo-router";
+import { router, Stack, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import {
   Animated,
@@ -13,6 +13,7 @@ import {
   Appbar,
   Button,
   IconButton,
+  Menu,
   Modal,
   Portal,
   Text,
@@ -141,6 +142,7 @@ function DrawerLayout() {
   const [open, setOpen] = useState<boolean>(false);
   const animatedWidth = useRef(new Animated.Value(100)).current;
   const [isDrawerVisible, setDrawerVisible] = useState(false);
+  const [menuVisible, setMenuVisible] = useState(false);
 
   const menuProps = useMenuContext();
   const { dashboardItems } = menuProps;
@@ -208,28 +210,67 @@ function DrawerLayout() {
                 ))}
               </ScrollView>
               <View style={{ width: "100%", alignItems: "center" }}>
-                {open ? (
-                  <Button
-                    icon="account"
-                    mode="text"
-                    textColor="#fff"
-                    onPress={() => {
-                      authProps.setShowSelectLocation(true);
-                    }}
-                  >
-                    {authProps.locations?.find(
-                      (location) => location.id === authProps.selectedLocation
-                    )?.name || "Seleccionar Sucursal"}
-                  </Button>
-                ) : (
-                  <IconButton
-                    icon="account"
-                    mode="contained"
-                    onPress={() => {
-                      authProps.setShowSelectLocation(true);
-                    }}
-                  />
-                )}
+                <Menu
+                  theme={{
+                    colors: {
+                      elevation: {
+                        level2: "#f0f0f0", // Define el color de "level2"
+                      },
+                    },
+                  }}
+                  visible={menuVisible}
+                  onDismiss={() => setMenuVisible(false)}
+                  anchor={
+                    open ? (
+                      <Button
+                        icon="account"
+                        mode="text"
+                        textColor="#fff"
+                        onPress={() => {
+                          setMenuVisible(true);
+                        }}
+                      >
+                        {authProps.locations?.find(
+                          (location) =>
+                            location.id === authProps?.selectedLocation?.id
+                        )?.name || "Seleccionar Sucursal"}
+                      </Button>
+                    ) : (
+                      <IconButton
+                        icon="account"
+                        mode="contained"
+                        onPress={() => {
+                          setMenuVisible(true);
+                        }}
+                      />
+                    )
+                  }
+                >
+                  {authProps.locations?.map((location) => (
+                    <Menu.Item
+                      key={"location-" + location.id}
+                      style={{
+                        backgroundColor:
+                          location.id === authProps.selectedLocation?.id
+                            ? Colors.primary[500]
+                            : "transparent",
+                      }}
+                      titleStyle={{
+                        color:
+                          location.id === authProps.selectedLocation?.id
+                            ? "#fff"
+                            : "#000",
+                      }}
+                      onPress={() => {
+                        authProps.setSelectedLocation(location);
+                        router.replace("/(tabs)/(actividades)/(dashboard)");
+                        setMenuVisible(false);
+                      }}
+                      title={location.name}
+                    />
+                  ))}
+                </Menu>
+
                 {open ? (
                   <Button
                     icon="logout"

@@ -17,9 +17,12 @@ export default function FormInput({
   const config = {
     ...props,
     placeholderTextColor: Colors.black[500],
-    onChangeText: formProps.handleChange(name),
+    onChangeText: (value: string) => {
+      formProps.setFieldValue(name, value);
+      props.onChangeText && props.onChangeText(value);
+    },
     onBlur: formProps.handleBlur(name),
-    value: formProps.values[name],
+    value: formProps.values[name] || "",
     error: formProps.errors[name] && formProps.touched[name],
   } as TextInputProps;
 

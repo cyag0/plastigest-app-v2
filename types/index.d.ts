@@ -29,6 +29,12 @@ namespace App {
       address: string;
     }
 
+    interface ProductLocation {
+      product_id: number;
+      location_id: number;
+      stock: number;
+    }
+
     namespace Products {
       interface Product {
         id: number;
@@ -36,6 +42,7 @@ namespace App {
         price: number;
         description?: string;
         img?: string;
+        packages?: Package[];
       }
     }
 
@@ -68,7 +75,10 @@ namespace App {
         | "suppliers"
         | "roles"
         | "locations"
-        | "packages";
+        | "packages"
+        | "in"
+        | "out"
+        | "inventory";
     }
     interface Package {
       id: number;
@@ -77,6 +87,49 @@ namespace App {
       labels?: string;
       code?: string;
       quantity: number;
+    }
+
+    namespace Movement {
+      /*     protected $fillable = [
+        "id",
+        "user_id",
+        "product_id",
+        "location_id",
+        "quantity",
+        "quantity_unit",
+        "total",
+        "date",
+        "type", // entrada o salida
+        "action",  // venta, compra, traslado, recarga, uso
+        "status", // pendiente, completado
+    ]; */
+      interface Entrada {
+        id: number;
+        user_id: number;
+        product_id: number;
+        location_id: number;
+        quantity: number;
+        quantity_unit: string;
+        total: number;
+        date: string;
+        type: "entrada";
+        action: "compra" | "recarga";
+        status: "pendiente" | "completado";
+      }
+
+      interface Salida {
+        id: number;
+        user_id: number;
+        product_id: number;
+        location_id: number;
+        quantity: number;
+        quantity_unit: string;
+        total: number;
+        date: string;
+        type: "salida";
+        action: "venta" | "traslado" | "uso";
+        status: "pendiente" | "completado";
+      }
     }
   }
 }

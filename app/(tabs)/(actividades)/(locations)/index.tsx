@@ -9,6 +9,7 @@ export default function index() {
     <ProTable<App.Entities.Location>
       api={Api.locations}
       title="Sucursales"
+      resource="locations"
       columns={[
         {
           title: "Name",

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View } from "react-native";
-import React from "react";
+import React, { useMemo } from "react";
 import RNPickerSelect, { PickerSelectProps } from "react-native-picker-select";
 import { Colors } from "@/constants/Colors";
 import { FormikProps } from "formik";
@@ -15,21 +15,23 @@ const Select: React.FC<SelectProps> = ({
   name,
   ...props
 }: SelectProps) => {
-  const config = {};
+  // Memoriza las opciones para evitar renderizados innecesarios
+  const options = useMemo(() => props, [props]);
 
-  const errorStyles =
-    FormProps.errors[name] && FormProps.touched[name]
+  // Estilos de error si hay validación
+  const errorStyles = useMemo(() => {
+    return FormProps.errors[name] && FormProps.touched[name]
       ? {
           backgroundColor: Colors.red[100],
           borderBottomWidth: 2,
           borderBottomColor: Colors.red[500],
         }
       : {};
+  }, [FormProps.errors[name], FormProps.touched[name]]);
 
   return (
     <>
       <RNPickerSelect
-        {...props}
         style={{
           inputAndroid: {
             ...errorStyles,
@@ -54,11 +56,12 @@ const Select: React.FC<SelectProps> = ({
           FormProps.setFieldTouched(name, true);
           FormProps.setFieldValue(name, value);
         }}
-        value={FormProps.values[name] || ""}
+        value={FormProps.values[name] ?? undefined}
+        {...options}
       />
       {FormProps.errors[name] && FormProps.touched[name] ? (
         <Text style={{ color: Colors.red[500] }}>
-          {FormProps.errors[name] || "Campo requerido"}
+          {(FormProps.errors[name] as string) || "Campo requerido"}
         </Text>
       ) : null}
     </>

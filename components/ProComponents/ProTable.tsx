@@ -86,6 +86,12 @@ interface ProTableProps<T> {
    */
   actionsProp?: ActionProp[];
 
+  renderActions?: (
+    actions: ActionProp[],
+    item: T,
+    index: number
+  ) => React.ReactNode;
+
   /**
    * Función que genera los inputs del formulario para crear/editar elementos (opcional).
    * @param {Function} handleChange - Función para manejar los cambios en los inputs.
@@ -179,9 +185,10 @@ function Table<T>({
   afterAction = undefined,
   validationScheme = () => ({}),
   resource,
-  loadingInputs,
+  loadingInputs = false,
   filtersInputs = undefined,
   indexParams: indexParamsProps,
+  renderActions,
 }: ProTableProps<T>) {
   const [items, setItems] = useState<T[]>([]);
   const [actions, setActions] = useState<ActionProp[]>([
@@ -192,11 +199,11 @@ function Table<T>({
         await handleEdit(id);
       },
     },
-    {
+    /*     {
       title: "Ver",
       icon: "eye-outline",
       onPress: () => {},
-    },
+    }, */
     {
       title: "Eliminar",
       icon: "delete-outline",
@@ -205,7 +212,9 @@ function Table<T>({
       },
     },
   ]);
-
+  /*   const [inputs, setInputs] = useState<
+    (props: FormikProps<any>) => React.ReactNode
+  >(inputsProps || (() => <View></View>)); */
   const initialSorterBy = columns.reduce((acc, column) => {
     if (column.sorter) {
       Object.entries(column.sorter).forEach(([key, value]) => {
@@ -238,7 +247,7 @@ function Table<T>({
   const [page, setPage] = React.useState<number>(0);
   const [itemsPerPage, onItemsPerPageChange] = React.useState(10);
 
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [numberOfItemsPerPageList] = React.useState([10]);
   const modalRef = useRef<ModalFormRef>(null);
   const toasterRef = useRef<ToasterRef>(null);
@@ -250,10 +259,6 @@ function Table<T>({
       reloadTable();
     })();
   }, []);
-
-  useEffect(() => {
-    console.log("filters", filters);
-  }, [filters]);
 
   async function handleCreate() {
     modalRef.current?.open({
@@ -399,6 +404,11 @@ function Table<T>({
       setMeta(data.meta);
     } catch (error) {
       console.error(error);
+      setItems([]);
+      toasterRef.current?.showToast({
+        type: "error",
+        message: "Ocurrió un error al cargar los datos",
+      });
     } finally {
       setLoading(false);
     }
@@ -425,9 +435,7 @@ function Table<T>({
   }
 
   return (
-    <Spin loading={loading} styles={styles.container}>
-      {!loadingInputs && <ModalFormComponent ref={modalRef} />}
-
+    <Spin loading={loading || loadingInputs} styles={styles.container}>
       <View style={[styles.card]}>
         <View
           style={{
@@ -514,11 +522,10 @@ function Table<T>({
         </View>
       </View>
       {loadingInputs ? (
-        <View
-          style={{ height: 200, width: 200, backgroundColor: "red" }}
-        ></View>
+        <View style={[styles.card, { flex: 1 }]}></View>
       ) : (
         <View style={[styles.card, { flex: 1 }]}>
+          <ModalFormComponent ref={modalRef} />
           <ScrollView
             horizontal
             contentContainerStyle={[{ flexDirection: "row", flex: 1 }]}
@@ -637,18 +644,29 @@ function Table<T>({
                           gap: 4,
                         }}
                       >
-                        {actions.map((action) => (
-                          <IconButton
-                            size={20}
-                            mode="contained-tonal"
-                            style={{ margin: 0 }}
-                            iconColor={Colors.primary[700]}
-                            icon={action.icon}
-                            onPress={() => {
-                              action.onPress(item.id);
-                            }}
-                          />
-                        ))}
+                        <IconButton
+                          key={"action-" + "create" + "-" + (item.id || index)}
+                          size={20}
+                          mode="contained-tonal"
+                          style={{ margin: 0 }}
+                          iconColor={Colors.primary[700]}
+                          icon={"pencil"}
+                          onPress={() => {
+                            handleEdit(String(item.id));
+                          }}
+                        />
+
+                        <IconButton
+                          key={"action-" + "delete" + "-" + (item.id || index)}
+                          size={20}
+                          mode="contained-tonal"
+                          style={{ margin: 0 }}
+                          iconColor={Colors.primary[700]}
+                          icon={"delete"}
+                          onPress={() => {
+                            handleDelete(item.id);
+                          }}
+                        />
                       </View>
                     </DataTable.Cell>
                   </DataTable.Row>
@@ -743,7 +761,7 @@ function ProTable<T>(props: ProTableProps<T>) {
     }, [props.resource])
   );
 
-  return props.loadingInputs ? <View></View> : <Table {...props} />;
+  return <Table {...props} />;
 }
 
 export default ProTable;

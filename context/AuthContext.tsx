@@ -9,10 +9,19 @@ interface AuthContextProps {
   logout: () => void;
   locations: App.Entities.Location[];
   setLocations: React.Dispatch<React.SetStateAction<App.Entities.Location[]>>;
-  selectedLocation: number | null;
-  setSelectedLocation: React.Dispatch<React.SetStateAction<number | null>>;
+  selectedLocation: App.Entities.Location | null;
+  setSelectedLocation: React.Dispatch<
+    React.SetStateAction<App.Entities.Location | null>
+  >;
   showSelectLocation: boolean;
   setShowSelectLocation: React.Dispatch<React.SetStateAction<boolean>>;
+  permissions: {
+    [key: string]: {
+      create: boolean;
+      edit: boolean;
+      delete: boolean;
+    };
+  };
 }
 
 const AuthContext = createContext<AuthContextProps | null>(null);
@@ -24,8 +33,16 @@ export default function AuthContextProvider({
 }) {
   const [user, setUser] = useState<App.Entities.User | null>(null);
   const [locations, setLocations] = useState<App.Entities.Location[]>([]);
-  const [selectedLocation, setSelectedLocation] = useState<number | null>();
+  const [selectedLocation, setSelectedLocation] =
+    useState<App.Entities.Location | null>(null);
   const [showSelectLocation, setShowSelectLocation] = useState(false);
+  const [userPermissions, setPermissions] = useState<{
+    [key: string]: {
+      create: boolean;
+      edit: boolean;
+      delete: boolean;
+    };
+  }>();
   //falta actualiar las locaciones al actualizar el usuario
   useEffect(() => {
     (async () => {
@@ -37,9 +54,10 @@ export default function AuthContextProvider({
           const _user = userReq.data.data;
           setUser(_user);
           setLocations(_user.locations || []);
+          setPermissions(_user.permissions);
           if (_user.locations.length >= 1) {
             setShowSelectLocation(true);
-            setSelectedLocation(_user.locations[0].id || null);
+            setSelectedLocation(_user.locations[0] || null);
             setShowSelectLocation(false);
           }
         }
