@@ -71,7 +71,6 @@ const ModalFormComponent = forwardRef<ModalFormRef>((props, ref) => {
       //funcion para obtener los datos iniciales del formulario
       if (options.id) {
         const data = await options.getValues(options.id);
-        console.log("aaa", { ...options.initialValues, ...data });
         setInitialValues({ ...options.initialValues, ...data });
       } else {
         if (options.initialValues) {

@@ -52,7 +52,7 @@ const index = () => {
       }}
       indexParams={{
         filters: {
-          type: "entrada",
+          type: "salida",
           location_id: auth?.selectedLocation?.id,
         },
       }}
@@ -151,8 +151,9 @@ const index = () => {
       //@ts-ignore
       api={Api.movements}
       initialValues={{
-        type: "entrada",
+        type: "salida",
         location_id: auth?.selectedLocation?.id,
+        status: "pendiente",
       }}
     />
   );
@@ -175,6 +176,9 @@ function Form(props: FormProps) {
 
   useEffect(() => {
     const values = (Object.values(props.formProps.values) as any[]) || [];
+    if (!props.formProps.values.status) {
+      props.formProps.setFieldValue("status", "pendiente");
+    }
     setCanChangeValues(true);
   }, []);
 
@@ -196,6 +200,18 @@ function Form(props: FormProps) {
 
     // Validación de la unidad (ejemplo: ajuste por unidad)
     const unitMultiplier = _unit?.quantity || 1; // Asegúrate de que `_unit` tenga esta propiedad
+
+    if (
+      selectedProduct?.id &&
+      quantity * unitMultiplier > selectedProduct?.pivot?.stock
+    ) {
+      props.formProps.setFieldError(
+        "quantity",
+        "La cantidad supera el stock del producto"
+      );
+
+      alert("La cantidad supera el stock del producto");
+    }
 
     // Calcular el total
     const total = quantity * unitPrice * unitMultiplier;
@@ -299,8 +315,9 @@ function Form(props: FormProps) {
           value: "",
         }}
         items={[
-          { label: "Compra", value: "compra" },
-          { label: "Recarga", value: "recarga" },
+          { label: "Venta", value: "venta" },
+          { label: "Traslado", value: "traslado" },
+          { label: "Uso", value: "uso" },
         ]}
         name="action"
         FormProps={props.formProps}

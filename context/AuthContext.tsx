@@ -15,7 +15,7 @@ interface AuthContextProps {
   >;
   showSelectLocation: boolean;
   setShowSelectLocation: React.Dispatch<React.SetStateAction<boolean>>;
-  permissions: {
+  userPermissions: {
     [key: string]: {
       create: boolean;
       edit: boolean;
@@ -42,7 +42,7 @@ export default function AuthContextProvider({
       edit: boolean;
       delete: boolean;
     };
-  }>();
+  }>({});
   //falta actualiar las locaciones al actualizar el usuario
   useEffect(() => {
     (async () => {
@@ -52,9 +52,11 @@ export default function AuthContextProvider({
           clientAxios.defaults.headers["Authorization"] = `Bearer ${token}`;
           const userReq = await clientAxios.get("user");
           const _user = userReq.data.data;
+
           setUser(_user);
           setLocations(_user.locations || []);
           setPermissions(_user.permissions);
+
           if (_user.locations.length >= 1) {
             setShowSelectLocation(true);
             setSelectedLocation(_user.locations[0] || null);
@@ -71,8 +73,6 @@ export default function AuthContextProvider({
     try {
       const userReq = await clientAxios.post("login", data);
 
-      console.log(userReq);
-
       const user = userReq.data.user;
       const token = userReq.data.token;
 
@@ -80,6 +80,14 @@ export default function AuthContextProvider({
         await AsyncStorage.setItem("token", token);
         clientAxios.defaults.headers["Authorization"] = `Bearer ${token}`;
         setUser(userReq.data.user);
+        setLocations(user.locations || []);
+        setPermissions(user.permissions);
+
+        if (user.locations.length >= 1) {
+          setShowSelectLocation(true);
+          setSelectedLocation(user.locations[0] || null);
+          setShowSelectLocation(false);
+        }
       }
 
       return userReq;
@@ -91,7 +99,6 @@ export default function AuthContextProvider({
   async function logout() {
     try {
       const response = await clientAxios.post("/logout");
-      console.log(response);
       clientAxios.defaults.headers["Authorization"] = "";
       await AsyncStorage.removeItem("token");
       setUser(null);
@@ -113,6 +120,7 @@ export default function AuthContextProvider({
         setSelectedLocation,
         showSelectLocation,
         setShowSelectLocation,
+        userPermissions,
       }}
     >
       {children}

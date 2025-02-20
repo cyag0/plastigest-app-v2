@@ -19,6 +19,7 @@ import { FormikProps } from "formik";
 import * as yup from "yup";
 import { useMenuContext } from "@/context/MenuContext";
 import Toaster, { ToasterRef } from "../Toaster";
+import { useAuthContext } from "@/context/AuthContext";
 
 /**
  * Props para el componente ProTable.
@@ -140,6 +141,8 @@ interface ProTableProps<T> {
   indexParams?: IndexProps;
 
   filtersInputs?: (props: FormikProps<any>) => React.ReactNode;
+
+  initialValues?: any;
 }
 
 /**
@@ -189,36 +192,19 @@ function Table<T>({
   filtersInputs = undefined,
   indexParams: indexParamsProps,
   renderActions,
+  initialValues,
 }: ProTableProps<T>) {
+  const auth = useAuthContext();
+
+  const CAN_EDIT = auth.userPermissions[resource]?.edit || false;
+  const CAN_DELETE = auth.userPermissions[resource]?.delete || false;
+
   const [items, setItems] = useState<T[]>([]);
-  const [actions, setActions] = useState<ActionProp[]>([
-    {
-      title: "Editar",
-      icon: "pencil",
-      onPress: async (id: string) => {
-        await handleEdit(id);
-      },
-    },
-    /*     {
-      title: "Ver",
-      icon: "eye-outline",
-      onPress: () => {},
-    }, */
-    {
-      title: "Eliminar",
-      icon: "delete-outline",
-      onPress: (id: string) => {
-        handleDelete(id);
-      },
-    },
-  ]);
-  /*   const [inputs, setInputs] = useState<
-    (props: FormikProps<any>) => React.ReactNode
-  >(inputsProps || (() => <View></View>)); */
+
   const initialSorterBy = columns.reduce((acc, column) => {
     if (column.sorter) {
       Object.entries(column.sorter).forEach(([key, value]) => {
-        acc[key] = value as "asc" | "desc"; // Aseguramos el tipo
+        acc[key] = value as "asc" | "desc";
       });
     }
     return acc;
@@ -267,6 +253,7 @@ function Table<T>({
       okText: "Guardar",
       onOk: handleOnFinish,
       validationSchema: validationScheme,
+      initialValues: initialValues,
     });
   }
 
@@ -390,8 +377,6 @@ function Table<T>({
       if (params["searchBy"]) {
         paramsData["searchBy"] = params["searchBy"];
       }
-
-      console.log("paramsData", paramsData);
 
       const data = await api.index(paramsData);
 
@@ -524,7 +509,12 @@ function Table<T>({
       {loadingInputs ? (
         <View style={[styles.card, { flex: 1 }]}></View>
       ) : (
-        <View style={[styles.card, { flex: 1 }]}>
+        <View
+          style={[
+            styles.card,
+            { flex: 1, paddingVertical: 0, paddingHorizontal: 8 },
+          ]}
+        >
           <ModalFormComponent ref={modalRef} />
           <ScrollView
             horizontal
@@ -613,7 +603,7 @@ function Table<T>({
 
               <View style={{ flex: 1 }}>
                 {items.map((item, index) => (
-                  <DataTable.Row key={"header-" + item.id}>
+                  <DataTable.Row key={"header-" + (item.id || index)}>
                     {columns.map((column) => (
                       <DataTable.Cell
                         numeric={column.type === "numeric"}
@@ -644,49 +634,114 @@ function Table<T>({
                           gap: 4,
                         }}
                       >
-                        <IconButton
-                          key={"action-" + "create" + "-" + (item.id || index)}
-                          size={20}
-                          mode="contained-tonal"
-                          style={{ margin: 0 }}
-                          iconColor={Colors.primary[700]}
-                          icon={"pencil"}
-                          onPress={() => {
-                            handleEdit(String(item.id));
-                          }}
-                        />
+                        {renderActions ? (
+                          renderActions(
+                            {
+                              edit: CAN_EDIT ? (
+                                <IconButton
+                                  key={
+                                    "action-" +
+                                    "create" +
+                                    "-" +
+                                    (item.id || index)
+                                  }
+                                  size={20}
+                                  mode="contained-tonal"
+                                  style={{ margin: 0 }}
+                                  iconColor={Colors.primary[700]}
+                                  icon={"pencil"}
+                                  onPress={() => {
+                                    handleEdit(String(item.id));
+                                  }}
+                                />
+                              ) : null,
+                              delete: CAN_DELETE ? (
+                                <IconButton
+                                  key={
+                                    "action-" +
+                                    "delete" +
+                                    "-" +
+                                    (item.id || index)
+                                  }
+                                  size={20}
+                                  mode="contained-tonal"
+                                  style={{ margin: 0 }}
+                                  iconColor={Colors.primary[700]}
+                                  icon={"delete"}
+                                  onPress={() => {
+                                    handleDelete(item.id);
+                                  }}
+                                />
+                              ) : null,
+                            },
+                            item,
+                            index
+                          )
+                        ) : (
+                          <>
+                            {CAN_EDIT && (
+                              <IconButton
+                                key={
+                                  "action-" +
+                                  "create" +
+                                  "-" +
+                                  (item.id || index)
+                                }
+                                size={20}
+                                mode="contained-tonal"
+                                style={{ margin: 0 }}
+                                iconColor={Colors.primary[700]}
+                                icon={"pencil"}
+                                onPress={() => {
+                                  handleEdit(String(item.id));
+                                }}
+                              />
+                            )}
 
-                        <IconButton
-                          key={"action-" + "delete" + "-" + (item.id || index)}
-                          size={20}
-                          mode="contained-tonal"
-                          style={{ margin: 0 }}
-                          iconColor={Colors.primary[700]}
-                          icon={"delete"}
-                          onPress={() => {
-                            handleDelete(item.id);
-                          }}
-                        />
+                            {CAN_DELETE && (
+                              <IconButton
+                                key={
+                                  "action-" +
+                                  "delete" +
+                                  "-" +
+                                  (item.id || index)
+                                }
+                                size={20}
+                                mode="contained-tonal"
+                                style={{ margin: 0 }}
+                                iconColor={Colors.primary[700]}
+                                icon={"delete"}
+                                onPress={() => {
+                                  handleDelete(item.id);
+                                }}
+                              />
+                            )}
+                          </>
+                        )}
                       </View>
                     </DataTable.Cell>
                   </DataTable.Row>
                 ))}
               </View>
-
-              <View style={{ alignItems: "center" }}>
-                <DataTable.Pagination
-                  page={page}
-                  numberOfPages={meta.last_page}
-                  onPageChange={(newPage) => {
-                    setPage(newPage);
-                    reloadTable(newPage);
-                  }}
-                  label={`${meta.from}-${meta.to} of ${meta.total}`}
-                  selectPageDropdownLabel="Rows per page"
-                />
-              </View>
             </DataTable>
           </ScrollView>
+
+          <View style={{ alignItems: "center" }}>
+            <DataTable.Pagination
+              page={page}
+              style={{
+                padding: 0,
+              }}
+              numberOfPages={meta.last_page}
+              onPageChange={(newPage) => {
+                console.log(newPage);
+                setPage(newPage);
+                reloadTable(newPage);
+              }}
+              label={`${meta.from}-${meta.to} of ${meta.total}`}
+              selectPageDropdownLabel="Rows per page"
+            />
+          </View>
         </View>
       )}
 

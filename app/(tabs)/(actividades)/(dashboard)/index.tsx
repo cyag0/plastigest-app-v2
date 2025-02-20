@@ -24,6 +24,7 @@ import {
 } from "react-native-paper";
 import { useAuthContext } from "@/context/AuthContext";
 import { useMenuContext } from "@/context/MenuContext";
+import Api from "@/services";
 
 const { width } = Dimensions.get("window");
 interface MovementProp {
@@ -33,196 +34,15 @@ interface MovementProp {
   total: number;
   date: string;
   action: "entrada" | "salida";
-  type: "compra" | "entrega" | "recibido" | "venta" | "uso";
+  type: "compra" | "traslado" | "recarga" | "venta" | "uso";
 }
-
-const movements: MovementProp[] = [
-  {
-    id: 1,
-    product: "Botella",
-    quantity: 100,
-    total: 500,
-    date: "2024-11-01",
-    action: "entrada",
-    type: "compra",
-  },
-  {
-    id: 2,
-    product: "Tapadera",
-    quantity: 50,
-    total: 250,
-    date: "2024-11-02",
-    action: "entrada",
-    type: "recibido",
-  },
-  {
-    id: 3,
-    product: "Botella",
-    quantity: 20,
-    total: 120,
-    date: "2024-11-03",
-    action: "salida",
-    type: "venta",
-  },
-  {
-    id: 4,
-    product: "Tapadera",
-    quantity: 10,
-    total: 50,
-    date: "2024-11-04",
-    action: "salida",
-    type: "entrega",
-  },
-  {
-    id: 5,
-    product: "Botella",
-    quantity: 30,
-    total: 150,
-    date: "2024-11-05",
-    action: "entrada",
-    type: "compra",
-  },
-  {
-    id: 6,
-    product: "Tapadera",
-    quantity: 15,
-    total: 75,
-    date: "2024-11-06",
-    action: "salida",
-    type: "venta",
-  },
-  {
-    id: 7,
-    product: "Botella",
-    quantity: 25,
-    total: 125,
-    date: "2024-11-07",
-    action: "entrada",
-    type: "recibido",
-  },
-  {
-    id: 8,
-    product: "Tapadera",
-    quantity: 5,
-    total: 25,
-    date: "2024-11-08",
-    action: "salida",
-    type: "uso",
-  },
-  {
-    id: 9,
-    product: "Botella",
-    quantity: 40,
-    total: 200,
-    date: "2024-11-09",
-    action: "entrada",
-    type: "compra",
-  },
-  {
-    id: 10,
-    product: "Tapadera",
-    quantity: 20,
-    total: 100,
-    date: "2024-11-10",
-    action: "salida",
-    type: "entrega",
-  },
-  {
-    id: 11,
-    product: "Botella",
-    quantity: 10,
-    total: 50,
-    date: "2024-11-11",
-    action: "salida",
-    type: "uso",
-  },
-  {
-    id: 12,
-    product: "Tapadera",
-    quantity: 35,
-    total: 175,
-    date: "2024-11-12",
-    action: "entrada",
-    type: "recibido",
-  },
-  {
-    id: 13,
-    product: "Botella",
-    quantity: 60,
-    total: 300,
-    date: "2024-11-13",
-    action: "entrada",
-    type: "compra",
-  },
-  {
-    id: 14,
-    product: "Tapadera",
-    quantity: 18,
-    total: 90,
-    date: "2024-11-14",
-    action: "salida",
-    type: "venta",
-  },
-  {
-    id: 15,
-    product: "Botella",
-    quantity: 45,
-    total: 225,
-    date: "2024-11-15",
-    action: "salida",
-    type: "entrega",
-  },
-  {
-    id: 16,
-    product: "Tapadera",
-    quantity: 12,
-    total: 60,
-    date: "2024-11-16",
-    action: "entrada",
-    type: "recibido",
-  },
-  {
-    id: 17,
-    product: "Botella",
-    quantity: 70,
-    total: 350,
-    date: "2024-11-17",
-    action: "entrada",
-    type: "compra",
-  },
-  {
-    id: 18,
-    product: "Tapadera",
-    quantity: 8,
-    total: 40,
-    date: "2024-11-18",
-    action: "salida",
-    type: "uso",
-  },
-  {
-    id: 19,
-    product: "Botella",
-    quantity: 55,
-    total: 275,
-    date: "2024-11-19",
-    action: "salida",
-    type: "venta",
-  },
-  {
-    id: 20,
-    product: "Tapadera",
-    quantity: 22,
-    total: 110,
-    date: "2024-11-20",
-    action: "salida",
-    type: "entrega",
-  },
-];
 
 export default function DashboardScreen() {
   const navigator = useRouter();
   const { dashboardItems } = useMenuContext();
   const auth = useAuthContext();
+
+  const [items, setItems] = React.useState<MenuItemProps[]>([]);
 
   const isTablet = width >= 768;
 
@@ -232,6 +52,39 @@ export default function DashboardScreen() {
   };
 
   const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+
+  useEffect(() => {
+    //sort items by category
+
+    if (!auth.userPermissions) {
+      return;
+    }
+
+    const itemsFiltered = dashboardItems.filter((item) => {
+      /* item.category &&
+        item.category !== "dashboard" &&
+        (auth.userPermissions[item.resource]?.create || false) === true */
+
+      if (!item.category) return false;
+
+      if (item.category === "dashboard") return false;
+
+      if (
+        !auth.userPermissions[item.resource] ||
+        !auth.userPermissions[item.resource].create
+      ) {
+        return false;
+      }
+
+      return true;
+    });
+
+    const sortedItems = itemsFiltered.sort((a, b) =>
+      a.category.localeCompare(b.category)
+    );
+
+    setItems(sortedItems);
+  }, [dashboardItems, auth.userPermissions]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -264,7 +117,7 @@ export default function DashboardScreen() {
                 }}
               >
                 <View style={[styles.content]}>
-                  {dashboardItems.map((item, index) => (
+                  {items.map((item, index) => (
                     <AnimatedTouchable
                       key={"menu-item-" + index}
                       entering={FadeInDown.delay(index * 100)} // Entrada animada
@@ -282,7 +135,11 @@ export default function DashboardScreen() {
                       onPress={() => handleNavigation(item.route)}
                     >
                       <LinearGradient
-                        colors={[Colors.primary[400], Colors.primary[500]]}
+                        colors={
+                          item.category === "admin"
+                            ? ["#FFA07A", "#FF6347"]
+                            : [Colors.primary[400], Colors.primary[500]]
+                        }
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 1 }}
                         style={[styles.card, { maxHeight: 150 }]}
@@ -302,6 +159,7 @@ export default function DashboardScreen() {
           </Card>
         </View>
 
+        {/* Movements Card */}
         <View
           style={{
             flex: 0.3,
@@ -365,10 +223,10 @@ export default function DashboardScreen() {
 }
 
 function RenderTypeText(movement: MovementProp) {
-  switch (movement.type) {
+  switch (movement.action as any) {
     case "compra":
       return "Se compraron " + movement.quantity + " " + movement.product;
-    case "entrega":
+    case "recarga":
       return (
         "Se entregaron " +
         movement.quantity +
@@ -376,7 +234,7 @@ function RenderTypeText(movement: MovementProp) {
         movement.product +
         " a una sucursal"
       );
-    case "recibido":
+    case "traslado":
       return (
         "Se recibieron " +
         movement.quantity +
@@ -393,22 +251,14 @@ function RenderTypeText(movement: MovementProp) {
   }
 }
 
-function RenderIcon(movement: MovementProp) {
-  switch (movement.type) {
-    case "compra":
-      return "shopping";
-    case "entrega":
-      return "truck-delivery";
-    case "recibido":
-      return "package-variant";
-    case "venta":
-      return "cash-register";
-    case "uso":
-      return "hammer-wrench";
-    default:
-      return "cube";
-  }
-}
+//make a const for the last 7 days
+const TYPE_ICON = {
+  compra: "shopping",
+  traslado: "truck-delivery",
+  recarga: "package-variant",
+  venta: "cash-register",
+  uso: "hammer-wrench",
+};
 
 function LastSevenDays() {
   return (
@@ -432,10 +282,6 @@ function SelectLocation(prevValue: any) {
   );
   const router = useRouter();
   const [visible, setVisible] = React.useState(true);
-
-  useEffect(() => {
-    console.log("prevValue", prevValue);
-  }, []);
 
   return (
     <Portal
@@ -500,6 +346,19 @@ function SelectLocation(prevValue: any) {
 }
 
 function Movements() {
+  const [movements, setMovements] = React.useState<MovementProp[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const movements = await Api.movements.index();
+        setMovements(movements.data);
+      } catch (error) {
+        console.log(error);
+      }
+    })();
+  }, []);
+
   return (
     <View style={{ flex: 1 }}>
       <Text
@@ -538,7 +397,7 @@ function Movements() {
                   <View
                     style={{
                       backgroundColor:
-                        movement.action === "entrada"
+                        movement.type === "entrada"
                           ? Colors.green[200]
                           : Colors.red[100],
                       borderRadius: 50,
@@ -547,10 +406,10 @@ function Movements() {
                     }}
                   >
                     <Icon
-                      source={RenderIcon(movement)}
+                      source={TYPE_ICON[movement.action as any]}
                       size={24}
                       color={
-                        movement.action === "entrada"
+                        movement.type === "entrada"
                           ? Colors.green[600]
                           : Colors.red[500]
                       }
@@ -575,13 +434,13 @@ function Movements() {
                       <View style={{ flexDirection: "row" }}>
                         <Icon
                           source={
-                            movement.action === "entrada"
+                            movement.type === "entrada"
                               ? "arrow-up"
                               : "arrow-down"
                           }
                           size={16}
                           color={
-                            movement.action === "entrada"
+                            movement.type === "entrada"
                               ? Colors.green[600]
                               : Colors.red[500]
                           }
@@ -590,14 +449,14 @@ function Movements() {
                           variant="labelSmall"
                           style={{
                             color:
-                              movement.action === "entrada"
+                              movement.type === "entrada"
                                 ? Colors.green[600]
                                 : Colors.red[500],
                             fontWeight: "bold",
                             fontSize: 14,
                           }}
                         >
-                          {movement.total}.00$
+                          {movement.total}$
                         </Text>
                       </View>
                     </View>

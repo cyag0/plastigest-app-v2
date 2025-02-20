@@ -22,11 +22,13 @@ const index = () => {
     (async () => {
       try {
         const [productReq, locationReq] = await Promise.all([
-          Api.products.index(),
+          Api.ProductLocation.productNotInLocation(
+            auth.selectedLocation?.id as number
+          ),
           Api.locations.index(),
         ]);
 
-        setProducts(productReq.data);
+        setProducts(productReq?.data || []);
         setLocations(locationReq.data);
       } catch (error) {
         console.log(error);
@@ -70,11 +72,27 @@ const index = () => {
     );
   }
 
+  async function reloadProducts() {
+    try {
+      const res = await Api.ProductLocation.productNotInLocation(
+        auth.selectedLocation?.id as number
+      );
+
+      setProducts(res?.data || []);
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <Spin loading={loading}>
       <ProTable<App.Entities.ProductLocation>
         loadingInputs={loading}
         resource="inventory"
+        afterAction={() => {
+          reloadProducts();
+          return false;
+        }}
         validationScheme={(yup) => {
           return {
             product_id: yup.string().required("El producto es requerido"),

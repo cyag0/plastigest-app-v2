@@ -7,6 +7,7 @@ import resources from "./roles/resources";
 import roles from "./roles/roles";
 import suppliers from "./suppliers";
 import usuarios from "./usuarios";
+import weeklyInventory from "./weeklyInventory";
 
 const Api = {
   products,
@@ -20,6 +21,7 @@ const Api = {
   },
   locations,
   packages,
+  weeklyInventory,
 };
 
 export default Api;

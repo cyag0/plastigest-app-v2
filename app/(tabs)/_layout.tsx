@@ -22,8 +22,6 @@ export default function TabLayout() {
   }, []);
 
   useEffect(() => {
-    console.log("user", user);
-    console.log("user loading", authLoading);
     // Solo redirige si el componente está montado y listo
     if (isMounted) {
       if (!user) {

@@ -26,7 +26,11 @@ export default function index() {
   async function getPermissions() {
     try {
       setLoading(true);
-      const res = await Api.roles.resources.index();
+      const res = await Api.roles.resources.index({
+        query: {
+          items_per_page: 20,
+        },
+      });
       setPermissions(res.data);
     } catch (error) {
       console.log(error);
@@ -78,7 +82,6 @@ function Form(props: {
   );
 
   useEffect(() => {
-    console.log(props.permissions);
     setPermissions(props.permissions);
   }, [props.permissions]);
 

@@ -25,8 +25,11 @@ export default function MenuContextContextProvider({
   useEffect(() => {
     (async () => {
       try {
-        const data = await Api.roles.resources.index();
-        console.log(data);
+        const data = await Api.roles.resources.index({
+          query: {
+            items_per_page: 20,
+          },
+        });
         setDashboardItems(data.data);
       } catch (error) {
         console.log(error);

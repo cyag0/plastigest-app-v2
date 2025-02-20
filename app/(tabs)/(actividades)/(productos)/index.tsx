@@ -25,10 +25,6 @@ const index = () => {
     })();
   }, []);
 
-  useEffect(() => {
-    console.log("proveedores", proveedores);
-  }, [proveedores]);
-
   async function onLoad() {
     try {
       const data = await Api.suppliers.index();
@@ -59,7 +55,7 @@ const index = () => {
           label={"Descripción"}
           placeholder={"Descripción del producto"}
         />
-         <FormInput
+        <FormInput
           name="code"
           formProps={props}
           label={"Ingresa el codigo"}

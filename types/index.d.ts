@@ -78,7 +78,8 @@ namespace App {
         | "packages"
         | "in"
         | "out"
-        | "inventory";
+        | "inventory"
+        | "weeklyInventory";
     }
     interface Package {
       id: number;
@@ -129,6 +130,27 @@ namespace App {
         type: "salida";
         action: "venta" | "traslado" | "uso";
         status: "pendiente" | "completado";
+      }
+    }
+
+    namespace WeeklyInventory {
+      interface WeeklyInventory {
+        id: number;
+        user: User;
+        user_id: number;
+        start_date: string;
+        end_date: string;
+        total_movements: number;
+        total_stock: number;
+        total_cost: number;
+        status: "pendiente" | "completado";
+      }
+
+      interface WeeklyInventoryDetail {
+        id: number;
+        product: Products.Product;
+        stock: number;
+        cost: number;
       }
     }
   }

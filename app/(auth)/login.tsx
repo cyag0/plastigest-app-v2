@@ -39,10 +39,7 @@ export default function LoginScreen() {
   async function handleLogin(data: { email: string; password: string }) {
     try {
       setLoading(true);
-      console.log(data);
       const res = await login(data);
-
-      console.log(res);
 
       if (res?.data?.error) {
         setError("El email o la contraseña son incorrectos");
